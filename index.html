@@ -3,243 +3,254 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#f2f2f7">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Tracking">
-<title>Tracking · hábitos y pendientes</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Tracking</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%234f46e5'/><path d='M28 52l15 15 30-32' stroke='white' stroke-width='11' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <style>
   :root {
-    --bg:#0b1020; --card:#131a2e; --card2:#18203a; --line:#232c4a; --ink:#eef2ff; --mid:#a5b0d0; --dim:#6b7699;
-    --alc:#f59e0b; --sug:#ec4899; --gym:#22c55e; --todo:#818cf8; --bad:#ef4444;
-    --r:20px;
+    --bg:#f2f2f7; --card:#fff; --ink:#111827; --mid:#4b5563; --dim:#9ca3af; --line:#e5e7eb; --soft:#f3f4f6;
+    --alc:#f59e0b; --sug:#ec4899; --gym:#10b981; --brand:#4f46e5; --bad:#ef4444; --ok:#059669;
   }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html, body { overflow-x:clip; }
-  body { font-family:Inter,system-ui,-apple-system,sans-serif; background:radial-gradient(900px 500px at 100% -10%,#1e1b4b 0,transparent 60%),var(--bg);
-         color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased;
-         padding:calc(14px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); }
-  .wrap { max-width:560px; margin:0 auto; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink);
+         -webkit-font-smoothing:antialiased; min-height:100vh;
+         padding:calc(10px + env(safe-area-inset-top)) 16px calc(100px + env(safe-area-inset-bottom)); }
+  .wrap { max-width:520px; margin:0 auto; }
   button { font:inherit; color:inherit; border:0; background:none; cursor:pointer; }
   input { font:inherit; color:var(--ink); }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
 
-  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-  header h1 { font-size:22px; font-weight:800; letter-spacing:-.02em; }
-  header p { color:var(--dim); font-size:13px; }
-  .iconbtn { width:40px; height:40px; border-radius:12px; background:var(--card); border:1px solid var(--line); display:grid; place-items:center; font-size:18px; }
+  .top { display:flex; align-items:flex-end; justify-content:space-between; padding:8px 2px 14px; }
+  .top small { display:block; font-size:13px; font-weight:600; color:var(--dim); text-transform:uppercase; letter-spacing:.04em; }
+  .top h1 { font-size:32px; font-weight:800; letter-spacing:-.03em; line-height:1.15; text-transform:capitalize; }
+  .round { width:38px; height:38px; border-radius:50%; background:var(--card); display:grid; place-items:center; box-shadow:0 1px 2px rgba(0,0,0,.06); color:var(--mid); }
+  .round svg { width:20px; height:20px; }
 
-  /* date bar */
-  .datebar { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
-  .datebar .day { flex:1; text-align:center; }
-  .datebar .day b { display:block; font-size:17px; text-transform:capitalize; }
-  .datebar .day span { font-size:12px; color:var(--dim); }
-  .week { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:16px; }
-  .week button { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:8px 0 7px; display:flex; flex-direction:column; align-items:center; gap:3px; }
-  .week button.on { border-color:#6366f1; background:#1e2550; }
-  .week button.today small { color:#a5b4fc; font-weight:700; }
-  .week small { font-size:11px; color:var(--dim); text-transform:uppercase; }
-  .week b { font-size:15px; }
-  .dots { display:flex; gap:3px; height:6px; }
-  .dots i { width:6px; height:6px; border-radius:50%; background:#2a3356; }
-  .dots i.a { background:var(--alc); } .dots i.s { background:var(--sug); } .dots i.g { background:var(--gym); }
+  .week { display:flex; align-items:center; gap:4px; margin-bottom:16px; }
+  .week .nav { width:26px; height:44px; color:var(--dim); font-size:24px; flex:none; }
+  .week .nav:disabled { visibility:hidden; }
+  .days { flex:1; display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .days button { display:flex; flex-direction:column; align-items:center; gap:4px; padding:4px 0; }
+  .days small { font-size:11px; font-weight:600; color:var(--dim); text-transform:uppercase; }
+  .days b { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; font-size:15px; font-weight:600; }
+  .days button.logged b { box-shadow:inset 0 0 0 2px #c7d2fe; }
+  .days button.today small { color:var(--brand); }
+  .days button.on b { background:var(--brand); color:#fff; box-shadow:none; }
+  .days button:disabled { opacity:.3; }
 
-  .card { background:linear-gradient(180deg,var(--card2),var(--card)); border:1px solid var(--line); border-radius:var(--r); padding:16px; margin-bottom:12px; }
-  .card h2 { font-size:15px; display:flex; align-items:center; gap:8px; }
-  .card h2 em { font-style:normal; width:30px; height:30px; border-radius:10px; display:grid; place-items:center; font-size:16px; }
-  .hrow { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
-  .goal { font-size:12px; color:var(--dim); }
-  .goal b { color:var(--mid); }
+  .label { font-size:13px; font-weight:600; color:var(--dim); text-transform:uppercase; letter-spacing:.04em; margin:22px 4px 8px; }
+  .card { background:var(--card); border-radius:18px; box-shadow:0 1px 2px rgba(0,0,0,.04); overflow:hidden; }
 
-  .counter { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .counter .big { font-size:40px; font-weight:800; letter-spacing:-.03em; line-height:1; }
-  .counter .big small { font-size:14px; font-weight:600; color:var(--dim); margin-left:4px; }
-  .step { width:48px; height:48px; border-radius:16px; background:#222b4b; font-size:24px; font-weight:600; display:grid; place-items:center; }
-  .step:active { transform:scale(.95); }
-  .bar { height:8px; border-radius:99px; background:#222b4b; overflow:hidden; margin-top:12px; }
-  .bar i { display:block; height:100%; border-radius:99px; transition:width .25s; }
-  .status { font-size:13px; margin-top:8px; color:var(--mid); }
-  .status.ok { color:#86efac; } .status.over { color:#fca5a5; }
+  .rings { display:grid; grid-template-columns:repeat(3,1fr); padding:18px 6px 16px; }
+  .ring { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .ring .inner { position:relative; width:76px; height:76px; }
+  .ring svg { width:76px; height:76px; transform:rotate(-90deg); }
+  .ring circle { fill:none; stroke-width:9; stroke-linecap:round; }
+  .ring .track { stroke:var(--soft); }
+  .ring .val { transition:stroke-dashoffset .4s ease, stroke .2s; }
+  .ring .inner span { position:absolute; inset:0; display:grid; place-items:center; font-size:22px; }
+  .ring b { font-size:13px; font-weight:600; }
+  .ring p { font-size:12px; color:var(--dim); margin-top:-6px; }
 
-  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-  .chip { padding:8px 12px; border-radius:12px; background:#222b4b; font-size:13px; font-weight:600; }
-  .chip.on { background:#14532d; color:#bbf7d0; box-shadow:inset 0 0 0 1px #22c55e; }
-  .chip:active { transform:scale(.96); }
+  .row { display:flex; align-items:center; gap:12px; padding:12px 16px; min-height:64px; }
+  .row + .row, .row + .sub, .sub + .row { border-top:1px solid var(--line); }
+  .ico { width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-size:18px; flex:none; }
+  .txt { flex:1; min-width:0; }
+  .txt b { display:block; font-size:16px; font-weight:600; }
+  .txt span { display:block; font-size:13px; color:var(--dim); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .txt span.ok { color:var(--ok); } .txt span.over { color:var(--bad); }
 
-  .gymtoggle { width:100%; padding:16px; border-radius:16px; background:#222b4b; font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center; gap:10px; }
-  .gymtoggle.done { background:linear-gradient(135deg,#16a34a,#22c55e); color:#03140a; }
-  .mins { display:flex; align-items:center; gap:10px; margin-top:12px; font-size:13px; color:var(--mid); }
-  .mins input { width:84px; padding:9px 10px; border-radius:12px; background:#0f1530; border:1px solid var(--line); font-size:16px; }
+  .stepper { display:flex; align-items:center; background:var(--soft); border-radius:12px; flex:none; }
+  .stepper button { width:40px; height:38px; font-size:22px; color:var(--mid); display:grid; place-items:center; border-radius:12px; }
+  .stepper button:active { background:#e5e7eb; }
+  .stepper output { min-width:36px; text-align:center; font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; }
 
-  /* streaks */
-  .stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:12px; }
-  .stat { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px 10px; text-align:center; }
-  .stat b { display:block; font-size:24px; font-weight:800; }
-  .stat span { font-size:11px; color:var(--dim); line-height:1.3; display:block; }
+  .sub { padding:0 16px 14px 64px; }
+  .scroller { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; margin-right:-16px; padding-right:16px; }
+  .scroller::-webkit-scrollbar { display:none; }
+  .pill { flex:none; padding:7px 12px; border-radius:999px; background:var(--soft); font-size:13px; font-weight:600; color:var(--mid); white-space:nowrap; }
+  .pill.on { background:#d1fae5; color:#065f46; }
+  .pill:active { transform:scale(.96); }
+  .mins { display:flex; align-items:center; justify-content:space-between; margin-top:12px; font-size:14px; color:var(--mid); }
 
-  /* heatmap */
-  .heat { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-top:10px; }
-  .heat i { aspect-ratio:1; border-radius:6px; background:#1d2544; display:block; }
-  .heat i.out { visibility:hidden; }
-  .legend { display:flex; gap:14px; font-size:12px; color:var(--dim); margin-top:10px; flex-wrap:wrap; }
-  .legend span:before { content:""; display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; vertical-align:-1px; background:var(--c); }
-  .seg { display:flex; background:#0f1530; border:1px solid var(--line); border-radius:12px; padding:3px; }
-  .seg button { padding:6px 10px; border-radius:9px; font-size:12px; font-weight:600; color:var(--dim); }
-  .seg button.on { background:#2a3356; color:var(--ink); }
+  .switch { width:51px; height:31px; border-radius:999px; background:#e5e7eb; position:relative; flex:none; transition:background .2s; }
+  .switch:after { content:""; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,.18); transition:transform .2s; }
+  .switch.on { background:var(--gym); }
+  .switch.on:after { transform:translateX(20px); }
 
-  /* todos */
-  .addtodo { display:flex; gap:8px; margin-bottom:10px; }
-  .addtodo input[type=text] { flex:1; min-width:0; padding:12px 14px; border-radius:14px; background:#0f1530; border:1px solid var(--line); font-size:16px; }
-  .datepick { position:relative; width:48px; flex:none; border-radius:14px; background:#0f1530; border:1px solid var(--line); display:grid; place-items:center; font-size:18px; }
-  .datepick.set { background:#1e2550; border-color:#6366f1; }
-  .datepick input { position:absolute; inset:0; opacity:0; width:100%; height:100%; color-scheme:dark; font-size:16px; }
-  .addtodo button { width:48px; border-radius:14px; background:#4f46e5; font-size:22px; font-weight:700; }
-  .todos { list-style:none; display:flex; flex-direction:column; gap:8px; }
-  .todos li { display:flex; align-items:center; gap:12px; padding:12px; border-radius:14px; background:#0f1530; border:1px solid var(--line); }
-  .todos .chk { width:26px; height:26px; border-radius:9px; border:2px solid #4b5585; flex:none; display:grid; place-items:center; font-size:14px; }
-  .todos li.done .chk { background:var(--todo); border-color:var(--todo); color:#0b1020; }
-  .todos .txt { flex:1; min-width:0; overflow-wrap:anywhere; font-size:15px; }
-  .todos li.done .txt { text-decoration:line-through; color:var(--dim); }
-  .todos .due { font-size:11px; color:var(--dim); display:block; margin-top:2px; }
-  .todos .due.late { color:#fca5a5; }
-  .todos .del { color:var(--dim); font-size:18px; padding:4px 6px; }
-  .empty { color:var(--dim); font-size:14px; text-align:center; padding:12px 0 4px; }
-  .linkbtn { color:#a5b4fc; font-size:13px; font-weight:600; margin-top:10px; }
+  .tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  .tile { background:var(--card); border-radius:18px; padding:14px 12px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+  .tile b { display:block; font-size:28px; font-weight:800; letter-spacing:-.02em; }
+  .tile span { display:block; font-size:12px; color:var(--dim); line-height:1.35; margin-top:2px; }
+  .seg { display:flex; background:var(--soft); border-radius:10px; padding:2px; margin:14px 16px 0; }
+  .seg button { flex:1; padding:7px 0; border-radius:8px; font-size:13px; font-weight:600; color:var(--mid); }
+  .seg button.on { background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  .heat { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding:12px 16px 6px; }
+  .heat .h { font-size:11px; font-weight:600; color:var(--dim); text-align:center; }
+  .heat i { aspect-ratio:1; border-radius:7px; background:var(--soft); display:block; }
+  .heat i.out { visibility:hidden; } .heat i.today { box-shadow:inset 0 0 0 2px var(--brand); }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 14px; padding:8px 16px 16px; font-size:12px; color:var(--mid); }
+  .legend span:before { content:""; display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:-1px; background:var(--c); }
 
-  /* tabs */
-  nav.tabs { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(12px + env(safe-area-inset-bottom)); z-index:20;
-             display:flex; gap:4px; background:rgba(19,26,46,.92); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:22px; padding:6px; }
-  nav.tabs button { padding:10px 16px; border-radius:16px; font-size:13px; font-weight:600; color:var(--dim); display:flex; flex-direction:column; align-items:center; gap:2px; min-width:76px; }
-  nav.tabs button span { font-size:18px; }
-  nav.tabs button.on { background:#2a3356; color:var(--ink); }
+  .add { display:flex; align-items:center; gap:10px; padding:10px 12px 10px 16px; }
+  .add input[type=text] { flex:1; min-width:0; border:0; outline:none; font-size:16px; padding:8px 0; background:none; }
+  .datepick { position:relative; width:38px; height:38px; border-radius:10px; background:var(--soft); display:grid; place-items:center; font-size:17px; flex:none; }
+  .datepick.set { background:#e0e7ff; }
+  .datepick input { position:absolute; inset:0; opacity:0; width:100%; height:100%; font-size:16px; }
+  .addbtn { width:38px; height:38px; border-radius:10px; background:var(--brand); color:#fff; font-size:22px; font-weight:600; flex:none; }
+  .todo .chk { width:26px; height:26px; border-radius:50%; border:2px solid #d1d5db; flex:none; display:grid; place-items:center; color:#fff; font-size:14px; font-weight:700; }
+  .todo.done .chk { background:var(--brand); border-color:var(--brand); }
+  .todo .txt b { font-weight:500; overflow-wrap:anywhere; }
+  .todo.done .txt b { color:var(--dim); text-decoration:line-through; }
+  .todo .txt span.late { color:var(--bad); }
+  .todo .del { color:#d1d5db; font-size:22px; padding:4px; flex:none; }
+  .empty { padding:22px 16px; text-align:center; color:var(--dim); font-size:15px; }
+  .textbtn { display:block; margin:12px auto 0; color:var(--brand); font-size:14px; font-weight:600; }
+
+  nav.tabs { position:fixed; left:0; right:0; bottom:0; z-index:20; display:flex; justify-content:center;
+             background:rgba(249,249,251,.92); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px);
+             border-top:1px solid rgba(0,0,0,.08); padding:6px 8px calc(6px + env(safe-area-inset-bottom)); }
+  nav.tabs .in { display:flex; width:100%; max-width:520px; }
+  nav.tabs button { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 0; font-size:11px; font-weight:600; color:var(--dim); }
+  nav.tabs svg { width:26px; height:26px; }
+  nav.tabs button.on { color:var(--brand); }
   .view { display:none; } .view.on { display:block; animation:fade .2s ease; }
-  @keyframes fade { from { opacity:0; transform:translateY(4px); } }
+  @keyframes fade { from { opacity:0; transform:translateY(3px); } }
 
-  /* settings sheet */
-  .sheet { position:fixed; inset:0; background:rgba(2,6,23,.6); backdrop-filter:blur(4px); z-index:30; display:none; align-items:flex-end; justify-content:center; }
+  .sheet { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:30; display:none; align-items:flex-end; justify-content:center; }
   .sheet.on { display:flex; }
-  .sheet .panel { width:100%; max-width:560px; background:var(--card); border:1px solid var(--line); border-radius:24px 24px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom)); max-height:90vh; overflow:auto; }
-  .panel h3 { font-size:17px; margin-bottom:14px; }
-  .field { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); font-size:14px; }
-  .field input { width:90px; padding:9px 10px; border-radius:12px; background:#0f1530; border:1px solid var(--line); font-size:16px; text-align:right; }
-  .panel .row { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
-  .btn { padding:12px 16px; border-radius:14px; background:#222b4b; font-weight:600; font-size:14px; }
-  .btn.primary { background:#4f46e5; }
-  .btn.danger { background:#3b1220; color:#fca5a5; }
-  .note { font-size:12px; color:var(--dim); margin-top:14px; line-height:1.5; }
-  .toast { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(92px + env(safe-area-inset-bottom)); background:#eef2ff; color:#0b1020;
+  .panel { width:100%; max-width:520px; background:var(--bg); border-radius:20px 20px 0 0; padding:8px 16px calc(24px + env(safe-area-inset-bottom)); max-height:92vh; overflow:auto; }
+  .grab { width:38px; height:5px; border-radius:3px; background:#d1d5db; margin:4px auto 10px; }
+  .panel h3 { font-size:20px; font-weight:700; margin:0 4px; }
+  .panel .row input { width:72px; border:0; background:var(--soft); border-radius:10px; padding:8px 10px; text-align:right; font-size:16px; font-weight:600; }
+  .panel .row button { color:var(--brand); font-weight:600; }
+  .panel .row.danger button { color:var(--bad); }
+  .note { font-size:12px; color:var(--dim); margin:12px 4px 0; line-height:1.5; }
+  .done-btn { width:100%; margin-top:16px; padding:15px; border-radius:14px; background:var(--brand); color:#fff; font-weight:700; font-size:16px; }
+  .toast { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(84px + env(safe-area-inset-bottom)); background:rgba(17,24,39,.92); color:#fff;
            padding:10px 16px; border-radius:12px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s; z-index:40; }
   .toast.on { opacity:1; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div><h1>Tracking</h1><p id="hello"></p></div>
-    <button class="iconbtn" id="openSettings" aria-label="Ajustes">⚙️</button>
-  </header>
 
-  <!-- HOY -->
   <section class="view on" id="v-day">
-    <div class="datebar">
-      <button class="iconbtn" id="prevDay" aria-label="Día anterior">‹</button>
-      <div class="day"><b id="dayName"></b><span id="dayDate"></span></div>
-      <button class="iconbtn" id="nextDay" aria-label="Día siguiente">›</button>
-    </div>
-    <div class="week" id="week"></div>
-
-    <div class="card">
-      <div class="hrow"><h2><em style="background:#3a2a0a">🍷</em>Alcohol</h2><span class="goal">Máx. <b id="alcGoal"></b> al día</span></div>
-      <div class="counter">
-        <button class="step" data-alc="-1" aria-label="Quitar bebida">−</button>
-        <div class="big" id="alcVal"></div>
-        <button class="step" data-alc="1" aria-label="Agregar bebida">+</button>
-      </div>
-      <div class="bar"><i id="alcBar" style="background:var(--alc)"></i></div>
-      <p class="status" id="alcStatus"></p>
+    <div class="top">
+      <div><small id="dayDate"></small><h1 id="dayName">Hoy</h1></div>
+      <button class="round" data-open-settings aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
     </div>
 
-    <div class="card">
-      <div class="hrow"><h2><em style="background:#3a0f27">🍬</em>Azúcar</h2><span class="goal">Meta <b id="sugGoal"></b> g</span></div>
-      <div class="counter">
-        <button class="step" data-sug="-5" aria-label="Quitar 5 gramos">−</button>
-        <div class="big" id="sugVal"></div>
-        <button class="step" data-sug="5" aria-label="Agregar 5 gramos">+</button>
-      </div>
-      <div class="chips">
-        <button class="chip" data-sug="10">+10 g</button>
-        <button class="chip" data-sug="25">+25 g · postre</button>
-        <button class="chip" data-sug="39">+39 g · refresco</button>
-        <button class="chip" data-sugreset>Reiniciar</button>
-      </div>
-      <div class="bar"><i id="sugBar" style="background:var(--sug)"></i></div>
-      <p class="status" id="sugStatus"></p>
+    <div class="week">
+      <button class="nav" id="prevWeek" aria-label="Semana anterior">‹</button>
+      <div class="days" id="days"></div>
+      <button class="nav" id="nextWeek" aria-label="Semana siguiente">›</button>
     </div>
 
-    <div class="card">
-      <div class="hrow"><h2><em style="background:#0d3320">🏋️</em>Gym</h2><span class="goal">Meta <b id="gymGoal"></b> días/sem.</span></div>
-      <button class="gymtoggle" id="gymBtn"></button>
-      <div class="chips" id="gymTypes"></div>
-      <label class="mins">Minutos <input type="number" inputmode="numeric" min="0" max="600" id="gymMin" placeholder="0"></label>
+    <div class="card rings">
+      <div class="ring"><div class="inner"><svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="val" id="rAlc" cx="40" cy="40" r="34" stroke="#f59e0b"/></svg><span>🍷</span></div><b>Alcohol</b><p id="pAlc"></p></div>
+      <div class="ring"><div class="inner"><svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="val" id="rSug" cx="40" cy="40" r="34" stroke="#ec4899"/></svg><span>🍬</span></div><b>Azúcar</b><p id="pSug"></p></div>
+      <div class="ring"><div class="inner"><svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="34"/><circle class="val" id="rGym" cx="40" cy="40" r="34" stroke="#10b981"/></svg><span>🏋️</span></div><b>Gym</b><p id="pGym"></p></div>
     </div>
+
+    <div class="label">Registro del día</div>
+    <div class="card">
+      <div class="row">
+        <div class="ico" style="background:#fef3c7">🍷</div>
+        <div class="txt"><b>Alcohol</b><span id="sAlc"></span></div>
+        <div class="stepper"><button data-alc="-1" aria-label="Quitar bebida">−</button><output id="vAlc">0</output><button data-alc="1" aria-label="Agregar bebida">+</button></div>
+      </div>
+      <div class="row">
+        <div class="ico" style="background:#fce7f3">🍬</div>
+        <div class="txt"><b>Azúcar (g)</b><span id="sSug"></span></div>
+        <div class="stepper"><button data-sug="-5" aria-label="Quitar 5 gramos">−</button><output id="vSug">0</output><button data-sug="5" aria-label="Agregar 5 gramos">+</button></div>
+      </div>
+      <div class="sub"><div class="scroller">
+        <button class="pill" data-sug="10">+10 g</button><button class="pill" data-sug="25">🍰 Postre +25</button>
+        <button class="pill" data-sug="39">🥤 Refresco +39</button><button class="pill" data-sug="15">☕ Café dulce +15</button>
+        <button class="pill" data-sugreset>Poner en 0</button>
+      </div></div>
+      <div class="row">
+        <div class="ico" style="background:#d1fae5">🏋️</div>
+        <div class="txt"><b>Gym</b><span id="sGym"></span></div>
+        <button class="switch" id="gymSwitch" role="switch" aria-label="Fui al gym"></button>
+      </div>
+      <div class="sub" id="gymMore">
+        <div class="scroller" id="gymTypes"></div>
+        <div class="mins">Minutos
+          <div class="stepper"><button data-min="-15" aria-label="Quitar 15 minutos">−</button><output id="vMin">0</output><button data-min="15" aria-label="Agregar 15 minutos">+</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="label">Pendientes de hoy</div>
+    <div class="card" id="todayTodos"></div>
   </section>
 
-  <!-- RESUMEN -->
   <section class="view" id="v-stats">
-    <div class="stats">
-      <div class="stat"><b id="stNoAlc">0</b><span>días seguidos sin alcohol</span></div>
-      <div class="stat"><b id="stGymWeek">0</b><span>días de gym esta semana</span></div>
-      <div class="stat"><b id="stSug">0</b><span>días seguidos en tu meta de azúcar</span></div>
+    <div class="top"><div><small>Tu progreso</small><h1>Resumen</h1></div></div>
+    <div class="tiles">
+      <div class="tile"><b id="tAlc">0</b><span>días seguidos sin alcohol</span></div>
+      <div class="tile"><b id="tGym">0</b><span>días de gym esta semana</span></div>
+      <div class="tile"><b id="tSug">0</b><span>días seguidos en tu meta de azúcar</span></div>
     </div>
+    <div class="label">Últimas 5 semanas</div>
     <div class="card">
-      <div class="hrow"><h2>Últimas 5 semanas</h2>
-        <div class="seg" id="heatSeg"><button data-h="alc" class="on">Alcohol</button><button data-h="sug">Azúcar</button><button data-h="gym">Gym</button></div>
-      </div>
+      <div class="seg" id="heatSeg"><button data-h="alc" class="on">Alcohol</button><button data-h="sug">Azúcar</button><button data-h="gym">Gym</button></div>
       <div class="heat" id="heat"></div>
-      <div class="legend" id="heatLegend"></div>
+      <div class="legend" id="legend"></div>
     </div>
-    <div class="card">
-      <div class="hrow"><h2>Esta semana</h2></div>
-      <div id="weekSummary" class="status"></div>
-    </div>
+    <div class="label">Esta semana</div>
+    <div class="card" id="weekRows"></div>
   </section>
 
-  <!-- PENDIENTES -->
   <section class="view" id="v-todo">
-    <div class="card">
-      <div class="hrow"><h2><em style="background:#1e2457">📝</em>Pendientes</h2><span class="goal" id="todoCount"></span></div>
-      <form class="addtodo" id="todoForm">
-        <input type="text" id="todoText" placeholder="Agregar pendiente…" maxlength="200" autocomplete="off">
-        <label class="datepick" id="duePick" title="Fecha (opcional)">📅<input type="date" id="todoDue" aria-label="Fecha (opcional)"></label>
-        <button type="submit" aria-label="Agregar">+</button>
-      </form>
-      <ul class="todos" id="todoList"></ul>
-      <button class="linkbtn" id="clearDone" hidden>Borrar completados</button>
+    <div class="top"><div><small id="todoCount">Todo listo</small><h1>Pendientes</h1></div></div>
+    <form class="card add" id="todoForm">
+      <label class="sr" for="todoText">Nuevo pendiente</label>
+      <input type="text" id="todoText" placeholder="Nuevo pendiente…" maxlength="200" autocomplete="off">
+      <label class="datepick" id="duePick" title="Fecha (opcional)">📅<input type="date" id="todoDue" aria-label="Fecha (opcional)"></label>
+      <button class="addbtn" type="submit" aria-label="Agregar">+</button>
+    </form>
+    <div class="label">Por hacer</div>
+    <div class="card" id="todoOpen"></div>
+    <div id="doneWrap">
+      <div class="label">Completados</div>
+      <div class="card" id="todoDone"></div>
+      <button class="textbtn" id="clearDone">Borrar completados</button>
     </div>
   </section>
 </div>
 
-<nav class="tabs">
-  <button data-v="day" class="on"><span>📅</span>Hoy</button>
-  <button data-v="stats"><span>📊</span>Resumen</button>
-  <button data-v="todo"><span>✅</span>Pendientes</button>
-</nav>
+<nav class="tabs"><div class="in">
+  <button data-v="day" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>Hoy</button>
+  <button data-v="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>Resumen</button>
+  <button data-v="todo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Pendientes</button>
+</div></nav>
 
 <div class="sheet" id="settings">
   <div class="panel">
+    <div class="grab"></div>
     <h3>Ajustes</h3>
-    <label class="field">Máximo de bebidas al día <input type="number" inputmode="numeric" min="0" max="20" id="setAlc"></label>
-    <label class="field">Meta de azúcar al día (g) <input type="number" inputmode="numeric" min="0" max="500" id="setSug"></label>
-    <label class="field">Días de gym por semana <input type="number" inputmode="numeric" min="0" max="7" id="setGym"></label>
-    <div class="row">
-      <button class="btn primary" id="saveSettings">Guardar</button>
-      <button class="btn" id="exportData">Exportar copia</button>
-      <button class="btn" id="importBtn">Importar copia</button>
-      <input type="file" id="importFile" accept="application/json" hidden>
+    <div class="label">Metas</div>
+    <div class="card">
+      <label class="row"><div class="txt"><b>Máximo de bebidas</b><span>por día</span></div><input type="number" inputmode="numeric" min="0" max="20" id="setAlc"></label>
+      <label class="row"><div class="txt"><b>Azúcar</b><span>gramos por día</span></div><input type="number" inputmode="numeric" min="0" max="500" id="setSug"></label>
+      <label class="row"><div class="txt"><b>Gym</b><span>días por semana</span></div><input type="number" inputmode="numeric" min="0" max="7" id="setGym"></label>
     </div>
-    <div class="row"><button class="btn danger" id="wipe">Borrar todos los datos</button><button class="btn" id="closeSettings">Cerrar</button></div>
-    <p class="note">Tus datos se guardan solo en este navegador. Usa "Exportar copia" de vez en cuando para no perderlos si cambias de teléfono. Referencia: la OMS recomienda idealmente menos de 25 g de azúcares libres al día.</p>
+    <div class="label">Tus datos</div>
+    <div class="card">
+      <div class="row"><div class="txt"><b>Exportar copia</b><span>Guarda un archivo de respaldo</span></div><button id="exportData">Exportar</button></div>
+      <div class="row"><div class="txt"><b>Importar copia</b><span>Reemplaza los datos de este teléfono</span></div><button id="importBtn">Importar</button></div>
+      <div class="row danger"><div class="txt"><b>Borrar todo</b><span>Registros y pendientes</span></div><button id="wipe">Borrar</button></div>
+    </div>
+    <input type="file" id="importFile" accept="application/json" hidden>
+    <button class="done-btn" id="saveSettings">Listo</button>
+    <p class="note">Tus datos se guardan solo en este teléfono. Exporta una copia de vez en cuando. Referencia: la OMS recomienda idealmente menos de 25 g de azúcares libres al día.</p>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -248,168 +259,172 @@
 (function () {
   "use strict";
   var KEY = "tracking.v1";
-  var $ = function (s) { return document.querySelector(s); };
-  var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var GYM_TYPES = ["Pesas", "Cardio", "Clase", "Correr", "Yoga", "Otro"];
+  var C = 2 * Math.PI * 34;
 
-  // ---- data
+  // data: same format as the first version, so earlier entries keep working
   function blank() { return { v: 1, goals: { alc: 1, sug: 25, gym: 4 }, days: {}, todos: [] }; }
-  function load() {
-    try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.days && d.goals) return d; } catch (e) {}
-    return blank();
-  }
+  function load() { try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.days && d.goals && d.todos) return d; } catch (e) {} return blank(); }
   var data = load();
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { toast("No se pudo guardar en este navegador"); } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { toast("No se pudo guardar"); } }
 
-  // ---- dates (local time, YYYY-MM-DD)
   function key(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
   function parse(k) { var p = k.split("-"); return new Date(+p[0], p[1] - 1, +p[2]); }
   function addDays(k, n) { var d = parse(k); d.setDate(d.getDate() + n); return key(d); }
   function today() { return key(new Date()); }
-  function weekStart(k) { var d = parse(k); var dow = (d.getDay() + 6) % 7; d.setDate(d.getDate() - dow); return key(d); }  // Monday
+  function weekStart(k) { var d = parse(k); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return key(d); }
   var current = today();
 
   function day(k) { return data.days[k] || { alc: 0, sug: 0, gym: false, gymType: "", gymMin: 0 }; }
+  function logged(k) { return !!data.days[k]; }
   function setDay(k, patch) {
     var d = Object.assign({}, day(k), patch);
     if (!d.alc && !d.sug && !d.gym && !d.gymMin) delete data.days[k]; else data.days[k] = d;
     save(); render();
   }
-  function logged(k) { return !!data.days[k]; }
-
-  // ---- render: day
-  var fmtDay = new Intl.DateTimeFormat("es", { weekday: "long" });
-  var fmtDate = new Intl.DateTimeFormat("es", { day: "numeric", month: "long", year: "numeric" });
-  function renderDay() {
-    var d = day(current), g = data.goals, t = today();
-    $("#dayName").textContent = current === t ? "Hoy" : current === addDays(t, -1) ? "Ayer" : fmtDay.format(parse(current));
-    $("#dayDate").textContent = fmtDate.format(parse(current));
-    $("#nextDay").style.visibility = current >= t ? "hidden" : "visible";
-
-    // week strip (Mon-Sun around the selected day)
-    var ws = weekStart(current), names = ["L", "M", "M", "J", "V", "S", "D"];
-    $("#week").innerHTML = names.map(function (n, i) {
-      var k = addDays(ws, i), x = day(k), future = k > t;
-      return '<button data-k="' + k + '" class="' + (k === current ? "on " : "") + (k === t ? "today" : "") + '"' + (future ? " disabled style='opacity:.35'" : "") + ">" +
-        "<small>" + n + "</small><b>" + parse(k).getDate() + '</b><span class="dots">' +
-        '<i class="' + (x.alc > 0 ? "a" : "") + '"></i><i class="' + (x.sug > 0 ? "s" : "") + '"></i><i class="' + (x.gym ? "g" : "") + '"></i></span></button>';
-    }).join("");
-    $$("#week button").forEach(function (b) { b.onclick = function () { current = b.dataset.k; render(); }; });
-
-    // alcohol
-    $("#alcGoal").textContent = g.alc;
-    $("#alcVal").innerHTML = d.alc + "<small>" + (d.alc === 1 ? "bebida" : "bebidas") + "</small>";
-    var ap = g.alc ? Math.min(100, d.alc / g.alc * 100) : (d.alc ? 100 : 0);
-    $("#alcBar").style.width = ap + "%";
-    $("#alcBar").style.background = d.alc > g.alc ? "var(--bad)" : "var(--alc)";
-    var as = $("#alcStatus");
-    as.className = "status " + (d.alc === 0 ? "ok" : d.alc > g.alc ? "over" : "");
-    as.textContent = d.alc === 0 ? "Día sin alcohol 🎉" : d.alc > g.alc ? "Pasaste tu máximo por " + (d.alc - g.alc) : "Dentro de tu máximo";
-
-    // sugar
-    $("#sugGoal").textContent = g.sug;
-    $("#sugVal").innerHTML = d.sug + "<small>g</small>";
-    var sp = g.sug ? Math.min(100, d.sug / g.sug * 100) : 0;
-    $("#sugBar").style.width = sp + "%";
-    $("#sugBar").style.background = d.sug > g.sug ? "var(--bad)" : "var(--sug)";
-    var ss = $("#sugStatus");
-    ss.className = "status " + (d.sug <= g.sug ? "ok" : "over");
-    ss.textContent = d.sug === 0 ? "Sin azúcar registrada" : d.sug <= g.sug ? "Te quedan " + (g.sug - d.sug) + " g" : "Pasaste tu meta por " + (d.sug - g.sug) + " g";
-
-    // gym
-    $("#gymGoal").textContent = g.gym;
-    var gb = $("#gymBtn");
-    gb.className = "gymtoggle" + (d.gym ? " done" : "");
-    gb.textContent = d.gym ? "✓ Fui al gym" : "Marcar gym de hoy";
-    $("#gymTypes").innerHTML = GYM_TYPES.map(function (x) { return '<button class="chip' + (d.gymType === x ? " on" : "") + '" data-type="' + x + '">' + x + "</button>"; }).join("");
-    $$("#gymTypes .chip").forEach(function (b) {
-      b.onclick = function () { var x = day(current); setDay(current, { gymType: x.gymType === b.dataset.type ? "" : b.dataset.type, gym: true }); };
-    });
-    var gm = $("#gymMin"); if (document.activeElement !== gm) gm.value = d.gymMin || "";
+  function gymThisWeek(k) { var ws = weekStart(k), n = 0; for (var i = 0; i < 7; i++) if (day(addDays(ws, i)).gym) n++; return n; }
+  function ring(id, pct, over, color) {
+    var e = $(id); e.style.strokeDasharray = C; e.style.strokeDashoffset = C * (1 - Math.max(0, Math.min(1, pct)));
+    e.setAttribute("stroke", over ? "#ef4444" : color);
   }
 
-  // ---- render: stats
-  function streak(test) {  // consecutive logged days ending today (or yesterday if today has no entry yet)
+  var fmtWeekday = new Intl.DateTimeFormat("es", { weekday: "long" });
+  var fmtLong = new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" });
+  function renderDay() {
+    var d = day(current), g = data.goals, t = today();
+    $("#dayName").textContent = current === t ? "Hoy" : current === addDays(t, -1) ? "Ayer" : fmtWeekday.format(parse(current));
+    $("#dayDate").textContent = fmtLong.format(parse(current));
+
+    var ws = weekStart(current), letters = ["L", "M", "M", "J", "V", "S", "D"];
+    $("#days").innerHTML = letters.map(function (l, i) {
+      var k = addDays(ws, i);
+      return '<button data-k="' + k + '" class="' + [k === current ? "on" : "", k === t ? "today" : "", logged(k) ? "logged" : ""].join(" ") + '"' +
+        (k > t ? " disabled" : "") + "><small>" + l + "</small><b>" + parse(k).getDate() + "</b></button>";
+    }).join("");
+    $$("#days button").forEach(function (b) { b.onclick = function () { current = b.dataset.k; render(); }; });
+    $("#nextWeek").disabled = addDays(ws, 7) > t;
+
+    var gw = gymThisWeek(current);
+    ring("#rAlc", g.alc ? d.alc / g.alc : (d.alc ? 1 : 0), d.alc > g.alc, "#f59e0b");
+    ring("#rSug", g.sug ? d.sug / g.sug : 0, d.sug > g.sug, "#ec4899");
+    ring("#rGym", g.gym ? gw / g.gym : 0, false, "#10b981");
+    $("#pAlc").textContent = d.alc + " de " + g.alc;
+    $("#pSug").textContent = d.sug + " de " + g.sug + " g";
+    $("#pGym").textContent = gw + " de " + g.gym + " días";
+
+    $("#vAlc").textContent = d.alc;
+    var sa = $("#sAlc");
+    sa.textContent = d.alc === 0 ? "Sin alcohol 🎉" : d.alc > g.alc ? "Pasaste tu máximo" : "Dentro del máximo";
+    sa.className = d.alc === 0 ? "ok" : d.alc > g.alc ? "over" : "";
+    $("#vSug").textContent = d.sug;
+    var ss = $("#sSug");
+    ss.textContent = d.sug <= g.sug ? "Te quedan " + (g.sug - d.sug) + " g de " + g.sug : "Pasaste tu meta por " + (d.sug - g.sug) + " g";
+    ss.className = d.sug > g.sug ? "over" : d.sug ? "" : "ok";
+    $("#gymSwitch").classList.toggle("on", !!d.gym);
+    $("#gymSwitch").setAttribute("aria-checked", d.gym ? "true" : "false");
+    $("#sGym").textContent = d.gym ? (d.gymType || "Entrenamiento") + (d.gymMin ? " · " + d.gymMin + " min" : "") : gw + " de " + g.gym + " días esta semana";
+    $("#gymMore").style.display = d.gym ? "" : "none";
+    $("#gymTypes").innerHTML = GYM_TYPES.map(function (x) { return '<button class="pill' + (d.gymType === x ? " on" : "") + '" data-type="' + x + '">' + x + "</button>"; }).join("");
+    $$("#gymTypes .pill").forEach(function (b) { b.onclick = function () { setDay(current, { gymType: day(current).gymType === b.dataset.type ? "" : b.dataset.type }); }; });
+    $("#vMin").textContent = d.gymMin || 0;
+
+    var due = data.todos.filter(function (x) { return !x.done && x.due && x.due <= t; });
+    $("#todayTodos").innerHTML = due.length ? due.map(todoRow).join("") : '<div class="empty">Nada para hoy 🙌</div>';
+    bindTodos($("#todayTodos"));
+  }
+
+  var heatMode = "alc";
+  function streak(test) {
     var k = today(), n = 0;
     if (!logged(k)) k = addDays(k, -1);
     while (logged(k) && test(day(k))) { n++; k = addDays(k, -1); }
     return n;
   }
-  var heatMode = "alc";
+  function row(bg, ico, title, sub) { return '<div class="row"><div class="ico" style="background:' + bg + '">' + ico + '</div><div class="txt"><b>' + title + "</b><span>" + esc(sub) + "</span></div></div>"; }
   function renderStats() {
     var g = data.goals, t = today();
-    $("#stNoAlc").textContent = streak(function (d) { return d.alc === 0; });
-    $("#stSug").textContent = streak(function (d) { return d.sug <= g.sug; });
-    var ws = weekStart(t), gymDays = 0, drinks = 0, sugarTot = 0, logs = 0;
-    for (var i = 0; i < 7; i++) { var k = addDays(ws, i); if (k > t) break; var d = day(k); if (d.gym) gymDays++; drinks += d.alc; sugarTot += d.sug; if (logged(k)) logs++; }
-    $("#stGymWeek").textContent = gymDays + "/" + g.gym;
-    $("#weekSummary").innerHTML = "🍷 " + drinks + " " + (drinks === 1 ? "bebida" : "bebidas") + " en total<br>🍬 " +
-      (logs ? Math.round(sugarTot / logs) : 0) + " g de azúcar por día en promedio<br>🏋️ " + gymDays + " de " + g.gym + " días de gym" +
-      (gymDays >= g.gym ? " — ¡meta cumplida! 💪" : "");
+    $("#tAlc").textContent = streak(function (d) { return d.alc === 0; });
+    $("#tSug").textContent = streak(function (d) { return d.sug <= g.sug; });
+    $("#tGym").textContent = gymThisWeek(t) + "/" + g.gym;
 
-    // heatmap: 5 weeks, Monday first
-    var start = addDays(weekStart(t), -28), cells = [];
+    var start = addDays(weekStart(t), -28), cells = ["L", "M", "M", "J", "V", "S", "D"].map(function (l) { return '<span class="h">' + l + "</span>"; });
     for (var j = 0; j < 35; j++) {
-      var k2 = addDays(start, j), x = day(k2), color = "", future = k2 > t;
-      if (logged(k2)) {
-        if (heatMode === "alc") color = x.alc === 0 ? "#166534" : x.alc > g.alc ? "#b91c1c" : "#b45309";
-        if (heatMode === "sug") color = x.sug <= g.sug ? "#9d174d" : "#b91c1c";
-        if (heatMode === "gym") color = x.gym ? "#16a34a" : "";
-        if (heatMode === "sug" && x.sug === 0) color = "#4a1d35";
+      var k = addDays(start, j), x = day(k), c = "";
+      if (logged(k)) {
+        if (heatMode === "alc") c = x.alc === 0 ? "#34d399" : x.alc > g.alc ? "#f87171" : "#fbbf24";
+        if (heatMode === "sug") c = x.sug <= g.sug ? "#f9a8d4" : "#f87171";
+        if (heatMode === "gym") c = x.gym ? "#10b981" : "";
       }
-      cells.push('<i class="' + (future ? "out" : "") + '" title="' + k2 + '"' + (color ? ' style="background:' + color + '"' : "") + "></i>");
+      cells.push('<i class="' + (k > t ? "out" : k === t ? "today" : "") + '" title="' + k + '"' + (c ? ' style="background:' + c + '"' : "") + "></i>");
     }
     $("#heat").innerHTML = cells.join("");
-    var L = { alc: [["#166534", "Sin alcohol"], ["#b45309", "Dentro del máximo"], ["#b91c1c", "Pasado"]],
-              sug: [["#9d174d", "En tu meta"], ["#b91c1c", "Pasado"]], gym: [["#16a34a", "Fui al gym"]] }[heatMode];
-    $("#heatLegend").innerHTML = L.map(function (x) { return '<span style="--c:' + x[0] + '">' + x[1] + "</span>"; }).join("") + '<span style="--c:#1d2544">Sin registro</span>';
+    var L = { alc: [["#34d399", "Sin alcohol"], ["#fbbf24", "Dentro del máximo"], ["#f87171", "Pasado"]],
+              sug: [["#f9a8d4", "En tu meta"], ["#f87171", "Pasado"]], gym: [["#10b981", "Fui al gym"]] }[heatMode];
+    $("#legend").innerHTML = L.concat([["#f3f4f6", "Sin registro"]]).map(function (x) { return '<span style="--c:' + x[0] + '">' + x[1] + "</span>"; }).join("");
     $$("#heatSeg button").forEach(function (b) { b.classList.toggle("on", b.dataset.h === heatMode); });
+
+    var ws = weekStart(t), drinks = 0, sug = 0, logs = 0, mins = 0;
+    for (var i = 0; i < 7; i++) { var k2 = addDays(ws, i); if (k2 > t) break; var y = day(k2); drinks += y.alc; sug += y.sug; mins += y.gymMin || 0; if (logged(k2)) logs++; }
+    var gw = gymThisWeek(t);
+    $("#weekRows").innerHTML =
+      row("#fef3c7", "🍷", "Bebidas", drinks === 1 ? "1 en total" : drinks + " en total") +
+      row("#fce7f3", "🍬", "Azúcar", (logs ? Math.round(sug / logs) : 0) + " g por día en promedio") +
+      row("#d1fae5", "🏋️", "Gym", gw + " de " + g.gym + " días" + (mins ? " · " + mins + " min" : "") + (gw >= g.gym ? " · ¡meta cumplida! 💪" : ""));
   }
 
-  // ---- render: todos
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   var fmtDue = new Intl.DateTimeFormat("es", { weekday: "short", day: "numeric", month: "short" });
+  function dueText(x) {
+    if (!x.due) return "";
+    var t = today(), late = !x.done && x.due < t;
+    var label = x.due === t ? "Hoy" : x.due === addDays(t, 1) ? "Mañana" : x.due === addDays(t, -1) ? "Ayer" : fmtDue.format(parse(x.due));
+    return '<span class="' + (late ? "late" : "") + '">' + label + (late ? " · atrasado" : "") + "</span>";
+  }
+  function todoRow(x) {
+    return '<div class="row todo' + (x.done ? " done" : "") + '" data-id="' + x.id + '"><button class="chk" aria-label="Completar">' + (x.done ? "✓" : "") + "</button>" +
+      '<div class="txt"><b>' + esc(x.text) + "</b>" + dueText(x) + '</div><button class="del" aria-label="Borrar">×</button></div>';
+  }
+  function bindTodos(root) {
+    $$(".todo", root).forEach(function (el) {
+      var id = el.dataset.id;
+      $(".chk", el).onclick = function () { var it = data.todos.find(function (x) { return x.id === id; }); it.done = !it.done; it.doneAt = it.done ? Date.now() : 0; save(); render(); };
+      $(".del", el).onclick = function () { data.todos = data.todos.filter(function (x) { return x.id !== id; }); save(); render(); };
+    });
+  }
   function renderTodos() {
-    var t = today();
-    var list = data.todos.slice().sort(function (a, b) {
-      return (a.done - b.done) || ((a.due || "9999") < (b.due || "9999") ? -1 : (a.due || "9999") > (b.due || "9999") ? 1 : b.created - a.created);
+    var open = data.todos.filter(function (x) { return !x.done; }).sort(function (a, b) {
+      var da = a.due || "9999", db = b.due || "9999";
+      return da < db ? -1 : da > db ? 1 : a.created - b.created;
     });
-    var open = data.todos.filter(function (x) { return !x.done; }).length;
-    $("#todoCount").textContent = open ? open + " por hacer" : "";
-    $("#todoList").innerHTML = list.length ? list.map(function (x) {
-      var late = x.due && !x.done && x.due < t;
-      return '<li class="' + (x.done ? "done" : "") + '" data-id="' + x.id + '"><button class="chk" aria-label="Completar">' + (x.done ? "✓" : "") + "</button>" +
-        '<div class="txt">' + esc(x.text) + (x.due ? '<span class="due' + (late ? " late" : "") + '">' + (x.due === t ? "Hoy" : fmtDue.format(parse(x.due))) + (late ? " · atrasado" : "") + "</span>" : "") +
-        '</div><button class="del" aria-label="Borrar">✕</button></li>';
-    }).join("") : '<li class="empty" style="background:none;border:0;justify-content:center">Nada pendiente. 🙌</li>';
-    $$("#todoList li[data-id]").forEach(function (li) {
-      var id = li.dataset.id, item = data.todos.find(function (x) { return x.id === id; });
-      li.querySelector(".chk").onclick = function () { item.done = !item.done; save(); renderTodos(); };
-      li.querySelector(".del").onclick = function () { data.todos = data.todos.filter(function (x) { return x.id !== id; }); save(); renderTodos(); };
-    });
-    $("#clearDone").hidden = !data.todos.some(function (x) { return x.done; });
+    var done = data.todos.filter(function (x) { return x.done; }).sort(function (a, b) { return (b.doneAt || 0) - (a.doneAt || 0); });
+    $("#todoCount").textContent = open.length ? open.length + " por hacer" : "Todo listo";
+    $("#todoOpen").innerHTML = open.length ? open.map(todoRow).join("") : '<div class="empty">Nada pendiente 🙌</div>';
+    $("#todoDone").innerHTML = done.map(todoRow).join("");
+    $("#doneWrap").style.display = done.length ? "" : "none";
+    bindTodos($("#todoOpen")); bindTodos($("#todoDone"));
   }
 
   function render() { renderDay(); renderStats(); renderTodos(); }
 
-  // ---- events
   $$("[data-alc]").forEach(function (b) { b.onclick = function () { setDay(current, { alc: Math.max(0, Math.min(30, day(current).alc + +b.dataset.alc)) }); }; });
   $$("[data-sug]").forEach(function (b) { b.onclick = function () { setDay(current, { sug: Math.max(0, Math.min(2000, day(current).sug + +b.dataset.sug)) }); }; });
   $("[data-sugreset]").onclick = function () { setDay(current, { sug: 0 }); };
-  $("#gymBtn").onclick = function () { var d = day(current); setDay(current, d.gym ? { gym: false, gymType: "", gymMin: 0 } : { gym: true }); };
-  $("#gymMin").onchange = function () { var m = Math.max(0, Math.min(600, parseInt(this.value, 10) || 0)); setDay(current, { gymMin: m, gym: m > 0 || day(current).gym }); };
-  $("#prevDay").onclick = function () { current = addDays(current, -1); render(); };
-  $("#nextDay").onclick = function () { if (current < today()) { current = addDays(current, 1); render(); } };
+  $$("[data-min]").forEach(function (b) { b.onclick = function () { setDay(current, { gymMin: Math.max(0, Math.min(600, (day(current).gymMin || 0) + +b.dataset.min)) }); }; });
+  $("#gymSwitch").onclick = function () { var d = day(current); setDay(current, d.gym ? { gym: false, gymType: "", gymMin: 0 } : { gym: true }); };
+  $("#prevWeek").onclick = function () { current = addDays(current, -7); render(); };
+  $("#nextWeek").onclick = function () { var n = addDays(current, 7); current = n > today() ? today() : n; render(); };
   $$("#heatSeg button").forEach(function (b) { b.onclick = function () { heatMode = b.dataset.h; renderStats(); }; });
 
   $("#todoForm").onsubmit = function (e) {
     e.preventDefault();
     var txt = $("#todoText").value.trim(); if (!txt) return;
     data.todos.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text: txt, due: $("#todoDue").value || "", done: false, created: Date.now() });
-    $("#todoText").value = ""; $("#todoDue").value = ""; $("#duePick").classList.remove("set"); save(); renderTodos();
+    $("#todoText").value = ""; $("#todoDue").value = ""; $("#duePick").classList.remove("set"); save(); render();
   };
   $("#todoDue").onchange = function () { $("#duePick").classList.toggle("set", !!this.value); };
-  $("#clearDone").onclick = function () { data.todos = data.todos.filter(function (x) { return !x.done; }); save(); renderTodos(); };
+  $("#clearDone").onclick = function () { data.todos = data.todos.filter(function (x) { return !x.done; }); save(); render(); };
 
   $$("nav.tabs button").forEach(function (b) {
     b.onclick = function () {
@@ -419,16 +434,14 @@
     };
   });
 
-  // settings
   function openSettings() { $("#setAlc").value = data.goals.alc; $("#setSug").value = data.goals.sug; $("#setGym").value = data.goals.gym; $("#settings").classList.add("on"); }
   function closeSettings() { $("#settings").classList.remove("on"); }
-  $("#openSettings").onclick = openSettings;
-  $("#closeSettings").onclick = closeSettings;
+  $$("[data-open-settings]").forEach(function (b) { b.onclick = openSettings; });
   $("#settings").onclick = function (e) { if (e.target === this) closeSettings(); };
   $("#saveSettings").onclick = function () {
     function n(id, max, def) { var v = parseInt($(id).value, 10); return isNaN(v) ? def : Math.max(0, Math.min(max, v)); }
     data.goals = { alc: n("#setAlc", 20, 1), sug: n("#setSug", 500, 25), gym: n("#setGym", 7, 4) };
-    save(); render(); closeSettings(); toast("Metas guardadas");
+    save(); render(); closeSettings();
   };
   $("#exportData").onclick = function () {
     var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -457,9 +470,6 @@
   var tt;
   function toast(msg) { var e = $("#toast"); e.textContent = msg; e.classList.add("on"); clearTimeout(tt); tt = setTimeout(function () { e.classList.remove("on"); }, 2200); }
 
-  // greeting + keep "today" right if the page stays open past midnight
-  var h = new Date().getHours();
-  $("#hello").textContent = h < 12 ? "Buenos días ☀️" : h < 19 ? "Buenas tardes 🌤️" : "Buenas noches 🌙";
   var lastToday = today();
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden && today() !== lastToday) { if (current === lastToday) current = today(); lastToday = today(); render(); }
