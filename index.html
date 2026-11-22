@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tracking">
+<title>Tracking · hábitos y pendientes</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0b1020; --card:#131a2e; --card2:#18203a; --line:#232c4a; --ink:#eef2ff; --mid:#a5b0d0; --dim:#6b7699;
+    --alc:#f59e0b; --sug:#ec4899; --gym:#22c55e; --todo:#818cf8; --bad:#ef4444;
+    --r:20px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body { overflow-x:clip; }
+  body { font-family:Inter,system-ui,-apple-system,sans-serif; background:radial-gradient(900px 500px at 100% -10%,#1e1b4b 0,transparent 60%),var(--bg);
+         color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased;
+         padding:calc(14px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); }
+  .wrap { max-width:560px; margin:0 auto; }
+  button { font:inherit; color:inherit; border:0; background:none; cursor:pointer; }
+  input { font:inherit; color:var(--ink); }
+
+  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  header h1 { font-size:22px; font-weight:800; letter-spacing:-.02em; }
+  header p { color:var(--dim); font-size:13px; }
+  .iconbtn { width:40px; height:40px; border-radius:12px; background:var(--card); border:1px solid var(--line); display:grid; place-items:center; font-size:18px; }
+
+  /* date bar */
+  .datebar { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .datebar .day { flex:1; text-align:center; }
+  .datebar .day b { display:block; font-size:17px; text-transform:capitalize; }
+  .datebar .day span { font-size:12px; color:var(--dim); }
+  .week { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:16px; }
+  .week button { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:8px 0 7px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .week button.on { border-color:#6366f1; background:#1e2550; }
+  .week button.today small { color:#a5b4fc; font-weight:700; }
+  .week small { font-size:11px; color:var(--dim); text-transform:uppercase; }
+  .week b { font-size:15px; }
+  .dots { display:flex; gap:3px; height:6px; }
+  .dots i { width:6px; height:6px; border-radius:50%; background:#2a3356; }
+  .dots i.a { background:var(--alc); } .dots i.s { background:var(--sug); } .dots i.g { background:var(--gym); }
+
+  .card { background:linear-gradient(180deg,var(--card2),var(--card)); border:1px solid var(--line); border-radius:var(--r); padding:16px; margin-bottom:12px; }
+  .card h2 { font-size:15px; display:flex; align-items:center; gap:8px; }
+  .card h2 em { font-style:normal; width:30px; height:30px; border-radius:10px; display:grid; place-items:center; font-size:16px; }
+  .hrow { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  .goal { font-size:12px; color:var(--dim); }
+  .goal b { color:var(--mid); }
+
+  .counter { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .counter .big { font-size:40px; font-weight:800; letter-spacing:-.03em; line-height:1; }
+  .counter .big small { font-size:14px; font-weight:600; color:var(--dim); margin-left:4px; }
+  .step { width:48px; height:48px; border-radius:16px; background:#222b4b; font-size:24px; font-weight:600; display:grid; place-items:center; }
+  .step:active { transform:scale(.95); }
+  .bar { height:8px; border-radius:99px; background:#222b4b; overflow:hidden; margin-top:12px; }
+  .bar i { display:block; height:100%; border-radius:99px; transition:width .25s; }
+  .status { font-size:13px; margin-top:8px; color:var(--mid); }
+  .status.ok { color:#86efac; } .status.over { color:#fca5a5; }
+
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .chip { padding:8px 12px; border-radius:12px; background:#222b4b; font-size:13px; font-weight:600; }
+  .chip.on { background:#14532d; color:#bbf7d0; box-shadow:inset 0 0 0 1px #22c55e; }
+  .chip:active { transform:scale(.96); }
+
+  .gymtoggle { width:100%; padding:16px; border-radius:16px; background:#222b4b; font-weight:700; font-size:16px; display:flex; align-items:center; justify-content:center; gap:10px; }
+  .gymtoggle.done { background:linear-gradient(135deg,#16a34a,#22c55e); color:#03140a; }
+  .mins { display:flex; align-items:center; gap:10px; margin-top:12px; font-size:13px; color:var(--mid); }
+  .mins input { width:84px; padding:9px 10px; border-radius:12px; background:#0f1530; border:1px solid var(--line); font-size:16px; }
+
+  /* streaks */
+  .stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:12px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px 10px; text-align:center; }
+  .stat b { display:block; font-size:24px; font-weight:800; }
+  .stat span { font-size:11px; color:var(--dim); line-height:1.3; display:block; }
+
+  /* heatmap */
+  .heat { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-top:10px; }
+  .heat i { aspect-ratio:1; border-radius:6px; background:#1d2544; display:block; }
+  .heat i.out { visibility:hidden; }
+  .legend { display:flex; gap:14px; font-size:12px; color:var(--dim); margin-top:10px; flex-wrap:wrap; }
+  .legend span:before { content:""; display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; vertical-align:-1px; background:var(--c); }
+  .seg { display:flex; background:#0f1530; border:1px solid var(--line); border-radius:12px; padding:3px; }
+  .seg button { padding:6px 10px; border-radius:9px; font-size:12px; font-weight:600; color:var(--dim); }
+  .seg button.on { background:#2a3356; color:var(--ink); }
+
+  /* todos */
+  .addtodo { display:flex; gap:8px; margin-bottom:10px; }
+  .addtodo input[type=text] { flex:1; min-width:0; padding:12px 14px; border-radius:14px; background:#0f1530; border:1px solid var(--line); font-size:16px; }
+  .datepick { position:relative; width:48px; flex:none; border-radius:14px; background:#0f1530; border:1px solid var(--line); display:grid; place-items:center; font-size:18px; }
+  .datepick.set { background:#1e2550; border-color:#6366f1; }
+  .datepick input { position:absolute; inset:0; opacity:0; width:100%; height:100%; color-scheme:dark; font-size:16px; }
+  .addtodo button { width:48px; border-radius:14px; background:#4f46e5; font-size:22px; font-weight:700; }
+  .todos { list-style:none; display:flex; flex-direction:column; gap:8px; }
+  .todos li { display:flex; align-items:center; gap:12px; padding:12px; border-radius:14px; background:#0f1530; border:1px solid var(--line); }
+  .todos .chk { width:26px; height:26px; border-radius:9px; border:2px solid #4b5585; flex:none; display:grid; place-items:center; font-size:14px; }
+  .todos li.done .chk { background:var(--todo); border-color:var(--todo); color:#0b1020; }
+  .todos .txt { flex:1; min-width:0; overflow-wrap:anywhere; font-size:15px; }
+  .todos li.done .txt { text-decoration:line-through; color:var(--dim); }
+  .todos .due { font-size:11px; color:var(--dim); display:block; margin-top:2px; }
+  .todos .due.late { color:#fca5a5; }
+  .todos .del { color:var(--dim); font-size:18px; padding:4px 6px; }
+  .empty { color:var(--dim); font-size:14px; text-align:center; padding:12px 0 4px; }
+  .linkbtn { color:#a5b4fc; font-size:13px; font-weight:600; margin-top:10px; }
+
+  /* tabs */
+  nav.tabs { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(12px + env(safe-area-inset-bottom)); z-index:20;
+             display:flex; gap:4px; background:rgba(19,26,46,.92); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:22px; padding:6px; }
+  nav.tabs button { padding:10px 16px; border-radius:16px; font-size:13px; font-weight:600; color:var(--dim); display:flex; flex-direction:column; align-items:center; gap:2px; min-width:76px; }
+  nav.tabs button span { font-size:18px; }
+  nav.tabs button.on { background:#2a3356; color:var(--ink); }
+  .view { display:none; } .view.on { display:block; animation:fade .2s ease; }
+  @keyframes fade { from { opacity:0; transform:translateY(4px); } }
+
+  /* settings sheet */
+  .sheet { position:fixed; inset:0; background:rgba(2,6,23,.6); backdrop-filter:blur(4px); z-index:30; display:none; align-items:flex-end; justify-content:center; }
+  .sheet.on { display:flex; }
+  .sheet .panel { width:100%; max-width:560px; background:var(--card); border:1px solid var(--line); border-radius:24px 24px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom)); max-height:90vh; overflow:auto; }
+  .panel h3 { font-size:17px; margin-bottom:14px; }
+  .field { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .field input { width:90px; padding:9px 10px; border-radius:12px; background:#0f1530; border:1px solid var(--line); font-size:16px; text-align:right; }
+  .panel .row { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .btn { padding:12px 16px; border-radius:14px; background:#222b4b; font-weight:600; font-size:14px; }
+  .btn.primary { background:#4f46e5; }
+  .btn.danger { background:#3b1220; color:#fca5a5; }
+  .note { font-size:12px; color:var(--dim); margin-top:14px; line-height:1.5; }
+  .toast { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(92px + env(safe-area-inset-bottom)); background:#eef2ff; color:#0b1020;
+           padding:10px 16px; border-radius:12px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s; z-index:40; }
+  .toast.on { opacity:1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>Tracking</h1><p id="hello"></p></div>
+    <button class="iconbtn" id="openSettings" aria-label="Ajustes">⚙️</button>
+  </header>
+
+  <!-- HOY -->
+  <section class="view on" id="v-day">
+    <div class="datebar">
+      <button class="iconbtn" id="prevDay" aria-label="Día anterior">‹</button>
+      <div class="day"><b id="dayName"></b><span id="dayDate"></span></div>
+      <button class="iconbtn" id="nextDay" aria-label="Día siguiente">›</button>
+    </div>
+    <div class="week" id="week"></div>
+
+    <div class="card">
+      <div class="hrow"><h2><em style="background:#3a2a0a">🍷</em>Alcohol</h2><span class="goal">Máx. <b id="alcGoal"></b> al día</span></div>
+      <div class="counter">
+        <button class="step" data-alc="-1" aria-label="Quitar bebida">−</button>
+        <div class="big" id="alcVal"></div>
+        <button class="step" data-alc="1" aria-label="Agregar bebida">+</button>
+      </div>
+      <div class="bar"><i id="alcBar" style="background:var(--alc)"></i></div>
+      <p class="status" id="alcStatus"></p>
+    </div>
+
+    <div class="card">
+      <div class="hrow"><h2><em style="background:#3a0f27">🍬</em>Azúcar</h2><span class="goal">Meta <b id="sugGoal"></b> g</span></div>
+      <div class="counter">
+        <button class="step" data-sug="-5" aria-label="Quitar 5 gramos">−</button>
+        <div class="big" id="sugVal"></div>
+        <button class="step" data-sug="5" aria-label="Agregar 5 gramos">+</button>
+      </div>
+      <div class="chips">
+        <button class="chip" data-sug="10">+10 g</button>
+        <button class="chip" data-sug="25">+25 g · postre</button>
+        <button class="chip" data-sug="39">+39 g · refresco</button>
+        <button class="chip" data-sugreset>Reiniciar</button>
+      </div>
+      <div class="bar"><i id="sugBar" style="background:var(--sug)"></i></div>
+      <p class="status" id="sugStatus"></p>
+    </div>
+
+    <div class="card">
+      <div class="hrow"><h2><em style="background:#0d3320">🏋️</em>Gym</h2><span class="goal">Meta <b id="gymGoal"></b> días/sem.</span></div>
+      <button class="gymtoggle" id="gymBtn"></button>
+      <div class="chips" id="gymTypes"></div>
+      <label class="mins">Minutos <input type="number" inputmode="numeric" min="0" max="600" id="gymMin" placeholder="0"></label>
+    </div>
+  </section>
+
+  <!-- RESUMEN -->
+  <section class="view" id="v-stats">
+    <div class="stats">
+      <div class="stat"><b id="stNoAlc">0</b><span>días seguidos sin alcohol</span></div>
+      <div class="stat"><b id="stGymWeek">0</b><span>días de gym esta semana</span></div>
+      <div class="stat"><b id="stSug">0</b><span>días seguidos en tu meta de azúcar</span></div>
+    </div>
+    <div class="card">
+      <div class="hrow"><h2>Últimas 5 semanas</h2>
+        <div class="seg" id="heatSeg"><button data-h="alc" class="on">Alcohol</button><button data-h="sug">Azúcar</button><button data-h="gym">Gym</button></div>
+      </div>
+      <div class="heat" id="heat"></div>
+      <div class="legend" id="heatLegend"></div>
+    </div>
+    <div class="card">
+      <div class="hrow"><h2>Esta semana</h2></div>
+      <div id="weekSummary" class="status"></div>
+    </div>
+  </section>
+
+  <!-- PENDIENTES -->
+  <section class="view" id="v-todo">
+    <div class="card">
+      <div class="hrow"><h2><em style="background:#1e2457">📝</em>Pendientes</h2><span class="goal" id="todoCount"></span></div>
+      <form class="addtodo" id="todoForm">
+        <input type="text" id="todoText" placeholder="Agregar pendiente…" maxlength="200" autocomplete="off">
+        <label class="datepick" id="duePick" title="Fecha (opcional)">📅<input type="date" id="todoDue" aria-label="Fecha (opcional)"></label>
+        <button type="submit" aria-label="Agregar">+</button>
+      </form>
+      <ul class="todos" id="todoList"></ul>
+      <button class="linkbtn" id="clearDone" hidden>Borrar completados</button>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs">
+  <button data-v="day" class="on"><span>📅</span>Hoy</button>
+  <button data-v="stats"><span>📊</span>Resumen</button>
+  <button data-v="todo"><span>✅</span>Pendientes</button>
+</nav>
+
+<div class="sheet" id="settings">
+  <div class="panel">
+    <h3>Ajustes</h3>
+    <label class="field">Máximo de bebidas al día <input type="number" inputmode="numeric" min="0" max="20" id="setAlc"></label>
+    <label class="field">Meta de azúcar al día (g) <input type="number" inputmode="numeric" min="0" max="500" id="setSug"></label>
+    <label class="field">Días de gym por semana <input type="number" inputmode="numeric" min="0" max="7" id="setGym"></label>
+    <div class="row">
+      <button class="btn primary" id="saveSettings">Guardar</button>
+      <button class="btn" id="exportData">Exportar copia</button>
+      <button class="btn" id="importBtn">Importar copia</button>
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+    <div class="row"><button class="btn danger" id="wipe">Borrar todos los datos</button><button class="btn" id="closeSettings">Cerrar</button></div>
+    <p class="note">Tus datos se guardan solo en este navegador. Usa "Exportar copia" de vez en cuando para no perderlos si cambias de teléfono. Referencia: la OMS recomienda idealmente menos de 25 g de azúcares libres al día.</p>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  var KEY = "tracking.v1";
+  var $ = function (s) { return document.querySelector(s); };
+  var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+  var GYM_TYPES = ["Pesas", "Cardio", "Clase", "Correr", "Yoga", "Otro"];
+
+  // ---- data
+  function blank() { return { v: 1, goals: { alc: 1, sug: 25, gym: 4 }, days: {}, todos: [] }; }
+  function load() {
+    try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.days && d.goals) return d; } catch (e) {}
+    return blank();
+  }
+  var data = load();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { toast("No se pudo guardar en este navegador"); } }
+
+  // ---- dates (local time, YYYY-MM-DD)
+  function key(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function parse(k) { var p = k.split("-"); return new Date(+p[0], p[1] - 1, +p[2]); }
+  function addDays(k, n) { var d = parse(k); d.setDate(d.getDate() + n); return key(d); }
+  function today() { return key(new Date()); }
+  function weekStart(k) { var d = parse(k); var dow = (d.getDay() + 6) % 7; d.setDate(d.getDate() - dow); return key(d); }  // Monday
+  var current = today();
+
+  function day(k) { return data.days[k] || { alc: 0, sug: 0, gym: false, gymType: "", gymMin: 0 }; }
+  function setDay(k, patch) {
+    var d = Object.assign({}, day(k), patch);
+    if (!d.alc && !d.sug && !d.gym && !d.gymMin) delete data.days[k]; else data.days[k] = d;
+    save(); render();
+  }
+  function logged(k) { return !!data.days[k]; }
+
+  // ---- render: day
+  var fmtDay = new Intl.DateTimeFormat("es", { weekday: "long" });
+  var fmtDate = new Intl.DateTimeFormat("es", { day: "numeric", month: "long", year: "numeric" });
+  function renderDay() {
+    var d = day(current), g = data.goals, t = today();
+    $("#dayName").textContent = current === t ? "Hoy" : current === addDays(t, -1) ? "Ayer" : fmtDay.format(parse(current));
+    $("#dayDate").textContent = fmtDate.format(parse(current));
+    $("#nextDay").style.visibility = current >= t ? "hidden" : "visible";
+
+    // week strip (Mon-Sun around the selected day)
+    var ws = weekStart(current), names = ["L", "M", "M", "J", "V", "S", "D"];
+    $("#week").innerHTML = names.map(function (n, i) {
+      var k = addDays(ws, i), x = day(k), future = k > t;
+      return '<button data-k="' + k + '" class="' + (k === current ? "on " : "") + (k === t ? "today" : "") + '"' + (future ? " disabled style='opacity:.35'" : "") + ">" +
+        "<small>" + n + "</small><b>" + parse(k).getDate() + '</b><span class="dots">' +
+        '<i class="' + (x.alc > 0 ? "a" : "") + '"></i><i class="' + (x.sug > 0 ? "s" : "") + '"></i><i class="' + (x.gym ? "g" : "") + '"></i></span></button>';
+    }).join("");
+    $$("#week button").forEach(function (b) { b.onclick = function () { current = b.dataset.k; render(); }; });
+
+    // alcohol
+    $("#alcGoal").textContent = g.alc;
+    $("#alcVal").innerHTML = d.alc + "<small>" + (d.alc === 1 ? "bebida" : "bebidas") + "</small>";
+    var ap = g.alc ? Math.min(100, d.alc / g.alc * 100) : (d.alc ? 100 : 0);
+    $("#alcBar").style.width = ap + "%";
+    $("#alcBar").style.background = d.alc > g.alc ? "var(--bad)" : "var(--alc)";
+    var as = $("#alcStatus");
+    as.className = "status " + (d.alc === 0 ? "ok" : d.alc > g.alc ? "over" : "");
+    as.textContent = d.alc === 0 ? "Día sin alcohol 🎉" : d.alc > g.alc ? "Pasaste tu máximo por " + (d.alc - g.alc) : "Dentro de tu máximo";
+
+    // sugar
+    $("#sugGoal").textContent = g.sug;
+    $("#sugVal").innerHTML = d.sug + "<small>g</small>";
+    var sp = g.sug ? Math.min(100, d.sug / g.sug * 100) : 0;
+    $("#sugBar").style.width = sp + "%";
+    $("#sugBar").style.background = d.sug > g.sug ? "var(--bad)" : "var(--sug)";
+    var ss = $("#sugStatus");
+    ss.className = "status " + (d.sug <= g.sug ? "ok" : "over");
+    ss.textContent = d.sug === 0 ? "Sin azúcar registrada" : d.sug <= g.sug ? "Te quedan " + (g.sug - d.sug) + " g" : "Pasaste tu meta por " + (d.sug - g.sug) + " g";
+
+    // gym
+    $("#gymGoal").textContent = g.gym;
+    var gb = $("#gymBtn");
+    gb.className = "gymtoggle" + (d.gym ? " done" : "");
+    gb.textContent = d.gym ? "✓ Fui al gym" : "Marcar gym de hoy";
+    $("#gymTypes").innerHTML = GYM_TYPES.map(function (x) { return '<button class="chip' + (d.gymType === x ? " on" : "") + '" data-type="' + x + '">' + x + "</button>"; }).join("");
+    $$("#gymTypes .chip").forEach(function (b) {
+      b.onclick = function () { var x = day(current); setDay(current, { gymType: x.gymType === b.dataset.type ? "" : b.dataset.type, gym: true }); };
+    });
+    var gm = $("#gymMin"); if (document.activeElement !== gm) gm.value = d.gymMin || "";
+  }
+
+  // ---- render: stats
+  function streak(test) {  // consecutive logged days ending today (or yesterday if today has no entry yet)
+    var k = today(), n = 0;
+    if (!logged(k)) k = addDays(k, -1);
+    while (logged(k) && test(day(k))) { n++; k = addDays(k, -1); }
+    return n;
+  }
+  var heatMode = "alc";
+  function renderStats() {
+    var g = data.goals, t = today();
+    $("#stNoAlc").textContent = streak(function (d) { return d.alc === 0; });
+    $("#stSug").textContent = streak(function (d) { return d.sug <= g.sug; });
+    var ws = weekStart(t), gymDays = 0, drinks = 0, sugarTot = 0, logs = 0;
+    for (var i = 0; i < 7; i++) { var k = addDays(ws, i); if (k > t) break; var d = day(k); if (d.gym) gymDays++; drinks += d.alc; sugarTot += d.sug; if (logged(k)) logs++; }
+    $("#stGymWeek").textContent = gymDays + "/" + g.gym;
+    $("#weekSummary").innerHTML = "🍷 " + drinks + " " + (drinks === 1 ? "bebida" : "bebidas") + " en total<br>🍬 " +
+      (logs ? Math.round(sugarTot / logs) : 0) + " g de azúcar por día en promedio<br>🏋️ " + gymDays + " de " + g.gym + " días de gym" +
+      (gymDays >= g.gym ? " — ¡meta cumplida! 💪" : "");
+
+    // heatmap: 5 weeks, Monday first
+    var start = addDays(weekStart(t), -28), cells = [];
+    for (var j = 0; j < 35; j++) {
+      var k2 = addDays(start, j), x = day(k2), color = "", future = k2 > t;
+      if (logged(k2)) {
+        if (heatMode === "alc") color = x.alc === 0 ? "#166534" : x.alc > g.alc ? "#b91c1c" : "#b45309";
+        if (heatMode === "sug") color = x.sug <= g.sug ? "#9d174d" : "#b91c1c";
+        if (heatMode === "gym") color = x.gym ? "#16a34a" : "";
+        if (heatMode === "sug" && x.sug === 0) color = "#4a1d35";
+      }
+      cells.push('<i class="' + (future ? "out" : "") + '" title="' + k2 + '"' + (color ? ' style="background:' + color + '"' : "") + "></i>");
+    }
+    $("#heat").innerHTML = cells.join("");
+    var L = { alc: [["#166534", "Sin alcohol"], ["#b45309", "Dentro del máximo"], ["#b91c1c", "Pasado"]],
+              sug: [["#9d174d", "En tu meta"], ["#b91c1c", "Pasado"]], gym: [["#16a34a", "Fui al gym"]] }[heatMode];
+    $("#heatLegend").innerHTML = L.map(function (x) { return '<span style="--c:' + x[0] + '">' + x[1] + "</span>"; }).join("") + '<span style="--c:#1d2544">Sin registro</span>';
+    $$("#heatSeg button").forEach(function (b) { b.classList.toggle("on", b.dataset.h === heatMode); });
+  }
+
+  // ---- render: todos
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  var fmtDue = new Intl.DateTimeFormat("es", { weekday: "short", day: "numeric", month: "short" });
+  function renderTodos() {
+    var t = today();
+    var list = data.todos.slice().sort(function (a, b) {
+      return (a.done - b.done) || ((a.due || "9999") < (b.due || "9999") ? -1 : (a.due || "9999") > (b.due || "9999") ? 1 : b.created - a.created);
+    });
+    var open = data.todos.filter(function (x) { return !x.done; }).length;
+    $("#todoCount").textContent = open ? open + " por hacer" : "";
+    $("#todoList").innerHTML = list.length ? list.map(function (x) {
+      var late = x.due && !x.done && x.due < t;
+      return '<li class="' + (x.done ? "done" : "") + '" data-id="' + x.id + '"><button class="chk" aria-label="Completar">' + (x.done ? "✓" : "") + "</button>" +
+        '<div class="txt">' + esc(x.text) + (x.due ? '<span class="due' + (late ? " late" : "") + '">' + (x.due === t ? "Hoy" : fmtDue.format(parse(x.due))) + (late ? " · atrasado" : "") + "</span>" : "") +
+        '</div><button class="del" aria-label="Borrar">✕</button></li>';
+    }).join("") : '<li class="empty" style="background:none;border:0;justify-content:center">Nada pendiente. 🙌</li>';
+    $$("#todoList li[data-id]").forEach(function (li) {
+      var id = li.dataset.id, item = data.todos.find(function (x) { return x.id === id; });
+      li.querySelector(".chk").onclick = function () { item.done = !item.done; save(); renderTodos(); };
+      li.querySelector(".del").onclick = function () { data.todos = data.todos.filter(function (x) { return x.id !== id; }); save(); renderTodos(); };
+    });
+    $("#clearDone").hidden = !data.todos.some(function (x) { return x.done; });
+  }
+
+  function render() { renderDay(); renderStats(); renderTodos(); }
+
+  // ---- events
+  $$("[data-alc]").forEach(function (b) { b.onclick = function () { setDay(current, { alc: Math.max(0, Math.min(30, day(current).alc + +b.dataset.alc)) }); }; });
+  $$("[data-sug]").forEach(function (b) { b.onclick = function () { setDay(current, { sug: Math.max(0, Math.min(2000, day(current).sug + +b.dataset.sug)) }); }; });
+  $("[data-sugreset]").onclick = function () { setDay(current, { sug: 0 }); };
+  $("#gymBtn").onclick = function () { var d = day(current); setDay(current, d.gym ? { gym: false, gymType: "", gymMin: 0 } : { gym: true }); };
+  $("#gymMin").onchange = function () { var m = Math.max(0, Math.min(600, parseInt(this.value, 10) || 0)); setDay(current, { gymMin: m, gym: m > 0 || day(current).gym }); };
+  $("#prevDay").onclick = function () { current = addDays(current, -1); render(); };
+  $("#nextDay").onclick = function () { if (current < today()) { current = addDays(current, 1); render(); } };
+  $$("#heatSeg button").forEach(function (b) { b.onclick = function () { heatMode = b.dataset.h; renderStats(); }; });
+
+  $("#todoForm").onsubmit = function (e) {
+    e.preventDefault();
+    var txt = $("#todoText").value.trim(); if (!txt) return;
+    data.todos.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text: txt, due: $("#todoDue").value || "", done: false, created: Date.now() });
+    $("#todoText").value = ""; $("#todoDue").value = ""; $("#duePick").classList.remove("set"); save(); renderTodos();
+  };
+  $("#todoDue").onchange = function () { $("#duePick").classList.toggle("set", !!this.value); };
+  $("#clearDone").onclick = function () { data.todos = data.todos.filter(function (x) { return !x.done; }); save(); renderTodos(); };
+
+  $$("nav.tabs button").forEach(function (b) {
+    b.onclick = function () {
+      $$("nav.tabs button").forEach(function (x) { x.classList.toggle("on", x === b); });
+      $$(".view").forEach(function (v) { v.classList.toggle("on", v.id === "v-" + b.dataset.v); });
+      window.scrollTo(0, 0);
+    };
+  });
+
+  // settings
+  function openSettings() { $("#setAlc").value = data.goals.alc; $("#setSug").value = data.goals.sug; $("#setGym").value = data.goals.gym; $("#settings").classList.add("on"); }
+  function closeSettings() { $("#settings").classList.remove("on"); }
+  $("#openSettings").onclick = openSettings;
+  $("#closeSettings").onclick = closeSettings;
+  $("#settings").onclick = function (e) { if (e.target === this) closeSettings(); };
+  $("#saveSettings").onclick = function () {
+    function n(id, max, def) { var v = parseInt($(id).value, 10); return isNaN(v) ? def : Math.max(0, Math.min(max, v)); }
+    data.goals = { alc: n("#setAlc", 20, 1), sug: n("#setSug", 500, 25), gym: n("#setGym", 7, 4) };
+    save(); render(); closeSettings(); toast("Metas guardadas");
+  };
+  $("#exportData").onclick = function () {
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "tracking-" + today() + ".json";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  };
+  $("#importBtn").onclick = function () { $("#importFile").click(); };
+  $("#importFile").onchange = function () {
+    var f = this.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var d = JSON.parse(r.result);
+        if (!d || typeof d.days !== "object" || !d.goals || !Array.isArray(d.todos)) throw new Error("bad");
+        if (!confirm("¿Reemplazar tus datos actuales con esta copia?")) return;
+        data = d; save(); render(); closeSettings(); toast("Copia importada");
+      } catch (e) { toast("Ese archivo no es una copia válida"); }
+    };
+    r.readAsText(f); this.value = "";
+  };
+  $("#wipe").onclick = function () {
+    if (!confirm("¿Borrar todos tus registros y pendientes? No se puede deshacer.")) return;
+    data = blank(); save(); render(); closeSettings(); toast("Datos borrados");
+  };
+
+  var tt;
+  function toast(msg) { var e = $("#toast"); e.textContent = msg; e.classList.add("on"); clearTimeout(tt); tt = setTimeout(function () { e.classList.remove("on"); }, 2200); }
+
+  // greeting + keep "today" right if the page stays open past midnight
+  var h = new Date().getHours();
+  $("#hello").textContent = h < 12 ? "Buenos días ☀️" : h < 19 ? "Buenas tardes 🌤️" : "Buenas noches 🌙";
+  var lastToday = today();
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && today() !== lastToday) { if (current === lastToday) current = today(); lastToday = today(); render(); }
+  });
+  render();
+})();
+</script>
+</body>
+</html>
