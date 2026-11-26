@@ -104,7 +104,7 @@
     try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.log) return d; } catch (e) {}
     var data = { log: {} };
     HABITS.forEach(function (h) { data.log[h.id] = {}; });
-    // migrate from the old version: logged day with 0 drinks / 0 sugar = clean day, gym = exercise
+
     try {
       var old = JSON.parse(localStorage.getItem("tracking.v1"));
       if (old && old.days) Object.keys(old.days).forEach(function (k) {
@@ -124,7 +124,7 @@
 
   function streak(h) {
     var n = 0, d = new Date(today);
-    if (!data.log[h][key(d)]) d = addDays(d, -1); // today not done yet doesn't break the streak
+    if (!data.log[h][key(d)]) d = addDays(d, -1);
     while (data.log[h][key(d)]) { n++; d = addDays(d, -1); }
     return n;
   }
@@ -140,7 +140,7 @@
         '<span>' + h.emoji + '</span></div><small>' + n + '/7 days</small></div>';
     }).join("");
 
-    // heatmap starts on the Monday WEEKS-1 weeks ago
+
     var start = addDays(today, -((today.getDay() + 6) % 7) - 7 * (WEEKS - 1));
     $("#cards").innerHTML = HABITS.map(function (h) {
       var log = data.log[h.id], done = !!log[T], total = Object.keys(log).length, cells = "", week = "";
