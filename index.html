@@ -70,8 +70,8 @@
   .colors { display:flex; gap:10px; flex-wrap:wrap; margin:4px 0 16px; }
   .colors button { width:34px; height:34px; border-radius:50%; }
   .colors button.sel { box-shadow:0 0 0 3px var(--card), 0 0 0 5px #fff; }
-  .sheet .primary { background:#fff; color:#000; text-align:center; }
-  .sheet .danger { color:#f87171; text-align:center; }
+  .sheet button.row.primary { background:#fff; color:#000; text-align:center; font-weight:700; }
+  .sheet button.row.danger { color:#f87171; text-align:center; }
   .empty { text-align:center; padding:60px 20px; color:var(--dim); }
   .empty button { margin-top:16px; padding:12px 22px; border-radius:14px; background:#fff; color:#000; font-weight:700; }
   .head { cursor:pointer; }
@@ -115,7 +115,7 @@
   <h3>Settings</h3>
   <p>Cloud sync: paste a GitHub token with Gist access. Your data is saved to a secret gist on your account.</p>
   <input type="password" id="token" placeholder="GitHub token (ghp_… or github_pat_…)" autocomplete="off">
-  <button class="row" id="saveToken">☁️ Save token &amp; sync</button>
+  <button class="row primary" id="saveToken">☁️ Save token &amp; sync</button>
   <button class="row" id="exportBtn">⬇️ Export backup</button>
   <button class="row" id="importBtn">⬆️ Import backup</button>
   <button class="row" id="closeBtn">Close</button>
