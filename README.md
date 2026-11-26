@@ -1,6 +1,6 @@
 # Tracking
 
-A dark, heatmap-style habit tracker. Tap ＋ to add whatever you want to track; tap a habit's name to edit or delete it. The To do tab has a list you can reorder by dragging ⠿.
+A dark, heatmap-style habit tracker. Tap ＋ to add whatever you want to track; tap a habit's name to edit or delete it. The To do and To buy tabs have lists you can reorder by dragging ⠿.
 
 - Tap **Complete** to log today; tap any day in the 7-day row to fix past days.
 - Each card shows total days ✓, current streak 🔥 and an 18-week heatmap; the rings show the last 7 days.
