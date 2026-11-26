@@ -1,15 +1,16 @@
 # Tracking
 
-Una página para llevar, día a día, **alcohol**, **azúcar** y **gym**, ver rachas y un resumen de las últimas semanas, y tener una lista de **pendientes**.
+A dark, heatmap-style habit tracker for **No alcohol**, **No sugar**, **Piano** and **Exercise**.
 
-- Funciona en el celular (se puede "Agregar a pantalla de inicio" desde Safari).
-- Los datos se guardan solo en tu navegador (localStorage). En **Ajustes → Exportar copia** puedes bajar un respaldo e importarlo en otro dispositivo.
-- Metas ajustables: máximo de bebidas al día, gramos de azúcar al día y días de gym por semana.
+- Tap **Complete** to log today; tap any day in the 7-day row to fix past days.
+- Each card shows total days ✓, current streak 🔥 and an 18-week heatmap; the rings show the last 7 days.
+- Works on your phone (Safari → Share → "Add to Home Screen").
+- Data stays in your browser (localStorage). Use **⋯ → Export backup** to move it to another device. Data from the old version is migrated automatically.
 
-## Probar en tu computadora
+## Run locally
 ```bash
-python server.py   # abre http://localhost:8080
+python server.py   # http://localhost:8080
 ```
 
-## Publicar en Railway
+## Deploy on Railway
 New Project → Deploy from GitHub repo → `tracking` → Settings → Networking → Generate Domain.
