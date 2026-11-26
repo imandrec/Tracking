@@ -93,6 +93,8 @@
   .todo li.done .chk { background:var(--c); box-shadow:none; }
   .todo li span { flex:1; min-width:0; overflow-wrap:anywhere; }
   .todo li.done span { text-decoration:line-through; color:var(--dim); }
+  .todo .grip { flex:none !important; color:var(--dim); font-size:20px; padding:4px 2px; touch-action:none; cursor:grab; user-select:none; -webkit-user-select:none; }
+  .todo li.drag { background:var(--card2); border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,.4); position:relative; z-index:2; border-bottom-color:transparent; }
   .todo .del { color:var(--dim); font-size:18px; padding:0 4px; }
   .todo .clear { display:none; color:var(--dim); font-size:13px; font-weight:600; margin-top:8px; }
   .todo .none { color:var(--dim); font-size:14px; padding:8px 2px; }
@@ -251,7 +253,7 @@
   function renderTodos() {
     var open = data.todos.filter(function (t) { return !t.done; }), done = data.todos.filter(function (t) { return t.done; });
     $("#todoList").innerHTML = open.concat(done).map(function (t) {
-      return '<li class="' + (t.done ? "done" : "") + '"><button class="chk" data-t="' + t.id + '">' + (t.done ? "✓" : "") + '</button><span>' + esc(t.text) + '</span><button class="del" data-del="' + t.id + '" aria-label="Delete">×</button></li>';
+      return '<li data-id="' + t.id + '" class="' + (t.done ? "done" : "") + '">' + (t.done ? "" : '<span class="grip" aria-label="Drag to reorder">⠿</span>') + '<button class="chk" data-t="' + t.id + '">' + (t.done ? "✓" : "") + '</button><span>' + esc(t.text) + '</span><button class="del" data-del="' + t.id + '" aria-label="Delete">×</button></li>';
     }).join("") || '<li class="none">Nothing to do 🎉</li>';
     $("#todoClear").style.display = done.length ? "block" : "none";
   }
@@ -268,6 +270,34 @@
     else return;
     save(); renderTodos();
   };
+  var drag = null;
+  $("#todoList").addEventListener("pointerdown", function (e) {
+    var g = e.target.closest(".grip"); if (!g) return;
+    e.preventDefault();
+    var li = g.parentNode; drag = { li: li, y: e.clientY };
+    li.classList.add("drag"); g.setPointerCapture(e.pointerId);
+    if (navigator.vibrate) navigator.vibrate(10);
+  });
+  $("#todoList").addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    var li = drag.li, prev = li.previousElementSibling, next = li.nextElementSibling;
+    li.style.transform = "translateY(" + (e.clientY - drag.y) + "px)";
+    if (next && !next.classList.contains("done") && e.clientY > next.getBoundingClientRect().top + next.offsetHeight / 2) {
+      li.parentNode.insertBefore(next, li); drag.y += next.offsetHeight;
+    } else if (prev && e.clientY < prev.getBoundingClientRect().top + prev.offsetHeight / 2) {
+      li.parentNode.insertBefore(li, prev); drag.y -= prev.offsetHeight;
+    }
+    li.style.transform = "translateY(" + (e.clientY - drag.y) + "px)";
+  });
+  function endDrag() {
+    if (!drag) return;
+    drag.li.classList.remove("drag"); drag.li.style.transform = ""; drag = null;
+    var order = Array.prototype.map.call(document.querySelectorAll("#todoList li[data-id]"), function (x) { return x.dataset.id; });
+    data.todos.sort(function (a, b) { return order.indexOf(a.id) - order.indexOf(b.id); });
+    save(); renderTodos();
+  }
+  $("#todoList").addEventListener("pointerup", endDrag);
+  $("#todoList").addEventListener("pointercancel", endDrag);
   $("#todoClear").onclick = function () { data.todos = data.todos.filter(function (x) { return !x.done; }); save(); renderTodos(); };
 
   function render() {
