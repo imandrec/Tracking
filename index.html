@@ -75,6 +75,21 @@
   .empty { text-align:center; padding:60px 20px; color:var(--dim); }
   .empty button { margin-top:16px; padding:12px 22px; border-radius:14px; background:#fff; color:#000; font-weight:700; }
   .head { cursor:pointer; }
+  .todo { margin-top:14px; --c:#60a5fa; }
+  .todo h2 { font-size:17px; font-weight:700; margin:2px 2px 12px; }
+  .todo form { display:flex; gap:8px; margin-bottom:6px; }
+  .todo form input { flex:1; min-width:0; padding:12px; border-radius:12px; border:0; background:var(--card2); color:var(--ink); font:inherit; font-size:16px; }
+  .todo form button { width:46px; border-radius:12px; background:var(--c); color:#0b0d14; font-size:20px; font-weight:700; }
+  .todo ul { list-style:none; }
+  .todo li { display:flex; align-items:center; gap:12px; padding:11px 2px; border-bottom:1px solid var(--off); }
+  .todo li:last-child { border-bottom:0; }
+  .todo .chk { width:24px; height:24px; border-radius:50%; box-shadow:inset 0 0 0 2px var(--dim); flex:none; color:#0b0d14; font-size:14px; font-weight:800; }
+  .todo li.done .chk { background:var(--c); box-shadow:none; }
+  .todo li span { flex:1; min-width:0; overflow-wrap:anywhere; }
+  .todo li.done span { text-decoration:line-through; color:var(--dim); }
+  .todo .del { color:var(--dim); font-size:18px; padding:0 4px; }
+  .todo .clear { display:none; color:var(--dim); font-size:13px; font-weight:600; margin-top:8px; }
+  .todo .none { color:var(--dim); font-size:14px; padding:8px 2px; }
   .toast { position:fixed; left:50%; bottom:30px; transform:translateX(-50%); background:#fff; color:#000; padding:10px 16px; border-radius:20px; font-weight:600; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; }
   .toast.on { opacity:1; }
 </style>
@@ -87,6 +102,12 @@
   </header>
   <section class="summary" id="summary"></section>
   <section class="grid2" id="cards"></section>
+  <section class="todo card" id="todo">
+    <h2>To do</h2>
+    <form id="todoForm"><input type="text" id="todoIn" placeholder="Add something to do…" maxlength="120" enterkeyhint="done"><button aria-label="Add">＋</button></form>
+    <ul id="todoList"></ul>
+    <button class="clear" id="todoClear">Clear completed</button>
+  </section>
   <div class="sync" id="sync"></div>
 </div>
 
@@ -129,7 +150,7 @@
 
   function load() {
     try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.log) return fix(d); } catch (e) {}
-    var data = { log: {}, habits: [] };
+    var data = { log: {}, habits: [], todos: [] };
 
     try {
       var old = JSON.parse(localStorage.getItem("tracking.v1"));
@@ -145,6 +166,7 @@
   }
   function fix(d) {
     if (!d.habits) d.habits = DEFAULTS.filter(function (h) { return d.log[h.id] && Object.keys(d.log[h.id]).length; });
+    if (!d.todos) d.todos = [];
     d.habits.forEach(function (h) { d.log[h.id] = d.log[h.id] || {}; });
     return d;
   }
@@ -208,7 +230,30 @@
   }
   function weekCount(h) { var n = 0; for (var i = 0; i < 7; i++) if (data.log[h][key(addDays(today, -i))]) n++; return n; }
 
+  function renderTodos() {
+    var open = data.todos.filter(function (t) { return !t.done; }), done = data.todos.filter(function (t) { return t.done; });
+    $("#todoList").innerHTML = open.concat(done).map(function (t) {
+      return '<li class="' + (t.done ? "done" : "") + '"><button class="chk" data-t="' + t.id + '">' + (t.done ? "✓" : "") + '</button><span>' + esc(t.text) + '</span><button class="del" data-del="' + t.id + '" aria-label="Delete">×</button></li>';
+    }).join("") || '<li class="none">Nothing to do 🎉</li>';
+    $("#todoClear").style.display = done.length ? "block" : "none";
+  }
+  $("#todoForm").onsubmit = function (e) {
+    e.preventDefault();
+    var t = $("#todoIn").value.trim(); if (!t) return;
+    data.todos.unshift({ id: "t" + Date.now().toString(36), text: t, done: false });
+    $("#todoIn").value = ""; save(); renderTodos();
+  };
+  $("#todoList").onclick = function (e) {
+    var c = e.target.closest("[data-t]"), d = e.target.closest("[data-del]");
+    if (c) { var t = data.todos.find(function (x) { return x.id === c.dataset.t; }); t.done = !t.done; }
+    else if (d) data.todos = data.todos.filter(function (x) { return x.id !== d.dataset.del; });
+    else return;
+    save(); renderTodos();
+  };
+  $("#todoClear").onclick = function () { data.todos = data.todos.filter(function (x) { return !x.done; }); save(); renderTodos(); };
+
   function render() {
+    renderTodos();
     var H = data.habits;
     if (!H.length) {
       $("#summary").innerHTML = "";
