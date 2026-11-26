@@ -1,6 +1,6 @@
 # Tracking
 
-A dark, heatmap-style habit tracker for **No alcohol**, **No sugar**, **Piano** and **Exercise**.
+A dark, heatmap-style habit tracker. Tap ＋ to add whatever you want to track; tap a habit's name to edit or delete it.
 
 - Tap **Complete** to log today; tap any day in the 7-day row to fix past days.
 - Each card shows total days ✓, current streak 🔥 and an 18-week heatmap; the rings show the last 7 days.

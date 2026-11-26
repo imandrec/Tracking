@@ -19,7 +19,7 @@
   .wrap { max-width:560px; margin:0 auto; }
   button { font:inherit; color:inherit; border:0; background:none; cursor:pointer; }
 
-  header { display:flex; align-items:flex-end; justify-content:space-between; margin:6px 2px 18px; }
+  header { display:flex; justify-content:flex-end; gap:10px; margin:2px 2px 16px; }
   header small { color:var(--dim); font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
   header h1 { font-size:32px; font-weight:800; letter-spacing:-.03em; }
   .menu { width:38px; height:38px; border-radius:50%; background:var(--card); color:var(--dim); font-size:20px; }
@@ -66,6 +66,15 @@
   .sheet input[type=password] { width:100%; padding:12px; border-radius:12px; border:0; background:var(--card2); color:var(--ink); font:inherit; margin-bottom:8px; }
   .sheet p { color:var(--dim); font-size:13px; margin:0 2px 10px; }
   .sync { font-size:12px; color:var(--dim); text-align:center; margin-top:18px; }
+  .sheet input[type=text] { width:100%; padding:12px; border-radius:12px; border:0; background:var(--card2); color:var(--ink); font:inherit; font-size:16px; margin-bottom:10px; }
+  .colors { display:flex; gap:10px; flex-wrap:wrap; margin:4px 0 16px; }
+  .colors button { width:34px; height:34px; border-radius:50%; }
+  .colors button.sel { box-shadow:0 0 0 3px var(--card), 0 0 0 5px #fff; }
+  .sheet .primary { background:#fff; color:#000; text-align:center; }
+  .sheet .danger { color:#f87171; text-align:center; }
+  .empty { text-align:center; padding:60px 20px; color:var(--dim); }
+  .empty button { margin-top:16px; padding:12px 22px; border-radius:14px; background:#fff; color:#000; font-weight:700; }
+  .head { cursor:pointer; }
   .toast { position:fixed; left:50%; bottom:30px; transform:translateX(-50%); background:#fff; color:#000; padding:10px 16px; border-radius:20px; font-weight:600; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; }
   .toast.on { opacity:1; }
 </style>
@@ -73,7 +82,7 @@
 <body>
 <div class="wrap">
   <header>
-    <div><small id="date"></small><h1>Today</h1></div>
+    <button class="menu" id="addBtn" aria-label="Add habit">＋</button>
     <button class="menu" id="menuBtn" aria-label="Settings">⋯</button>
   </header>
   <section class="summary" id="summary"></section>
@@ -91,11 +100,20 @@
   <button class="row" id="closeBtn">Close</button>
   <input type="file" id="file" accept="application/json" hidden>
 </div></div>
+<div class="sheet" id="habitSheet"><div>
+  <h3 id="habitTitle">New habit</h3>
+  <input type="text" id="hName" placeholder="Name (e.g. Read, No coffee)" maxlength="40">
+  <input type="text" id="hEmoji" placeholder="Emoji (optional) 📚" maxlength="4">
+  <div class="colors" id="hColors"></div>
+  <button class="row primary" id="hSave">Save</button>
+  <button class="row danger" id="hDelete">Delete habit</button>
+  <button class="row" id="hCancel">Cancel</button>
+</div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (function () {
-  var HABITS = [
+  var DEFAULTS = [
     { id: "alcohol",  name: "No alcohol", emoji: "🍷", color: "#f87171" },
     { id: "sugar",    name: "No sugar",   emoji: "🍬", color: "#f472b6" },
     { id: "piano",    name: "Piano",      emoji: "🎹", color: "#a78bfa" },
@@ -110,14 +128,14 @@
   var T = key(today);
 
   function load() {
-    try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.log) return d; } catch (e) {}
-    var data = { log: {} };
-    HABITS.forEach(function (h) { data.log[h.id] = {}; });
+    try { var d = JSON.parse(localStorage.getItem(KEY)); if (d && d.log) return fix(d); } catch (e) {}
+    var data = { log: {}, habits: [] };
 
     try {
       var old = JSON.parse(localStorage.getItem("tracking.v1"));
       if (old && old.days) Object.keys(old.days).forEach(function (k) {
         var o = old.days[k];
+        if (!data.habits.length) { data.habits = DEFAULTS.slice(); DEFAULTS.forEach(function (h) { data.log[h.id] = {}; }); }
         if (!o.alc) data.log.alcohol[k] = 1;
         if (!o.sug) data.log.sugar[k] = 1;
         if (o.gym) data.log.exercise[k] = 1;
@@ -125,8 +143,13 @@
     } catch (e) {}
     return data;
   }
+  function fix(d) {
+    if (!d.habits) d.habits = DEFAULTS.filter(function (h) { return d.log[h.id] && Object.keys(d.log[h.id]).length; });
+    d.habits.forEach(function (h) { d.log[h.id] = d.log[h.id] || {}; });
+    return d;
+  }
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); }
   var data = load();
-  HABITS.forEach(function (h) { data.log[h.id] = data.log[h.id] || {}; });
   function store() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { toast("Couldn't save"); } }
   function save() { data.updated = Date.now(); store(); push(); }
 
@@ -163,7 +186,7 @@
     return findGist().then(function (id) { return gh("/gists/" + id); }).then(function (g) {
       var remote = JSON.parse(g.files[FILE].content || "{}");
       if (remote.log && (remote.updated || 0) > (data.updated || 0)) {
-        data = remote; HABITS.forEach(function (h) { data.log[h.id] = data.log[h.id] || {}; });
+        data = fix(remote);
         store(); render(); status("☁️ Synced from GitHub");
       } else if ((data.updated || 0) > (remote.updated || 0)) push();
       else status("☁️ Synced");
@@ -186,18 +209,25 @@
   function weekCount(h) { var n = 0; for (var i = 0; i < 7; i++) if (data.log[h][key(addDays(today, -i))]) n++; return n; }
 
   function render() {
-    $("#date").textContent = today.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+    var H = data.habits;
+    if (!H.length) {
+      $("#summary").innerHTML = "";
+      $("#cards").innerHTML = '<div class="empty"><div style="font-size:40px">✨</div><p>What do you want to track?</p><button id="emptyAdd">＋ Add a habit</button></div>';
+      $("#emptyAdd").onclick = function () { openHabit(); };
+      return;
+    }
+    $("#summary").style.gridTemplateColumns = "repeat(" + Math.min(H.length, 4) + ",minmax(0,1fr))";
 
-    $("#summary").innerHTML = HABITS.map(function (h) {
+    $("#summary").innerHTML = H.map(function (h) {
       var n = weekCount(h.id), C = 2 * Math.PI * 22;
       return '<div class="ring"><div class="e"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="22" fill="none" stroke="#262b38" stroke-width="5"/>' +
         '<circle cx="26" cy="26" r="22" fill="none" stroke="' + h.color + '" stroke-width="5" stroke-linecap="round" stroke-dasharray="' + C + '" stroke-dashoffset="' + (C * (1 - n / 7)) + '"/></svg>' +
-        '<span>' + h.emoji + '</span></div><small>' + n + '/7 days</small></div>';
+        '<span>' + esc(h.emoji) + '</span></div><small>' + n + '/7 days</small></div>';
     }).join("");
 
 
     var start = addDays(today, -((today.getDay() + 6) % 7) - 7 * (WEEKS - 1));
-    $("#cards").innerHTML = HABITS.map(function (h) {
+    $("#cards").innerHTML = H.map(function (h) {
       var log = data.log[h.id], done = !!log[T], total = Object.keys(log).length, cells = "", week = "";
       for (var i = 0; i < WEEKS * 7; i++) {
         var d = addDays(start, i), k = key(d);
@@ -208,7 +238,7 @@
         week += '<button data-h="' + h.id + '" data-k="' + kk + '" class="' + (log[kk] ? "on" : "") + '"><b></b>' + dd.toLocaleDateString("en-US", { weekday: "narrow" }) + '</button>';
       }
       return '<article class="card ' + (done ? "done" : "") + '" style="--c:' + h.color + '">' +
-        '<div class="head"><div class="icon">' + h.emoji + '</div><div><h2>' + h.name + '</h2>' +
+        '<div class="head" data-edit="' + h.id + '"><div class="icon">' + esc(h.emoji) + '</div><div><h2>' + esc(h.name) + '</h2>' +
         '<div class="stats">' + total + ' ✓<span>' + streak(h.id) + ' 🔥</span></div></div></div>' +
         '<div class="heat">' + cells + '</div>' +
         '<div class="week">' + week + '</div>' +
@@ -217,9 +247,47 @@
   }
 
   $("#cards").addEventListener("click", function (e) {
+    var ed = e.target.closest("[data-edit]");
+    if (ed) return openHabit(ed.dataset.edit);
     var b = e.target.closest("button[data-h]");
     if (b) { if (navigator.vibrate) navigator.vibrate(10); toggle(b.dataset.h, b.dataset.k); }
   });
+
+  var COLORS = ["#f87171", "#fb923c", "#facc15", "#4ade80", "#2dd4bf", "#60a5fa", "#a78bfa", "#f472b6"], editing = null, pick = COLORS[0];
+  function drawColors() {
+    $("#hColors").innerHTML = COLORS.map(function (c) { return '<button data-c="' + c + '" class="' + (c === pick ? "sel" : "") + '" style="background:' + c + '"></button>'; }).join("");
+  }
+  $("#hColors").onclick = function (e) { var b = e.target.closest("[data-c]"); if (b) { pick = b.dataset.c; drawColors(); } };
+  function openHabit(id) {
+    var h = data.habits.find(function (x) { return x.id === id; });
+    editing = h || null;
+    $("#habitTitle").textContent = h ? "Edit habit" : "New habit";
+    $("#hName").value = h ? h.name : ""; $("#hEmoji").value = h ? h.emoji : "";
+    pick = h ? h.color : COLORS[data.habits.length % COLORS.length]; drawColors();
+    $("#hDelete").style.display = h ? "" : "none";
+    $("#habitSheet").classList.add("on");
+    setTimeout(function () { $("#hName").focus(); }, 50);
+  }
+  function closeHabit() { $("#habitSheet").classList.remove("on"); }
+  $("#addBtn").onclick = function () { openHabit(); };
+  $("#hCancel").onclick = closeHabit;
+  $("#habitSheet").onclick = function (e) { if (e.target.id === "habitSheet") closeHabit(); };
+  $("#hSave").onclick = function () {
+    var name = $("#hName").value.trim(); if (!name) { $("#hName").focus(); return; }
+    var emoji = $("#hEmoji").value.trim() || "⭐";
+    if (editing) { editing.name = name; editing.emoji = emoji; editing.color = pick; }
+    else {
+      var id = "h" + Date.now().toString(36);
+      data.habits.push({ id: id, name: name, emoji: emoji, color: pick }); data.log[id] = {};
+    }
+    closeHabit(); save(); render();
+  };
+  $("#hDelete").onclick = function () {
+    if (!editing || !confirm("Delete \"" + editing.name + "\" and its history?")) return;
+    var id = editing.id;
+    data.habits = data.habits.filter(function (x) { return x.id !== id; }); delete data.log[id];
+    closeHabit(); save(); render();
+  };
 
   $("#menuBtn").onclick = function () { $("#token").value = token(); $("#sheet").classList.add("on"); };
   $("#saveToken").onclick = function () {
@@ -242,7 +310,7 @@
     var f = this.files[0]; if (!f) return;
     f.text().then(function (t) {
       var d = JSON.parse(t); if (!d.log) throw 0;
-      data = d; HABITS.forEach(function (h) { data.log[h.id] = data.log[h.id] || {}; });
+      data = fix(d);
       data.updated = 0; save(); render(); toast("Imported"); $("#sheet").classList.remove("on");
     }).catch(function () { toast("Invalid file"); });
   };
