@@ -61,6 +61,9 @@
   .sheet > div { background:var(--card); width:100%; max-width:560px; border-radius:24px 24px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom)); }
   .sheet h3 { font-size:18px; margin-bottom:14px; }
   .sheet button.row { width:100%; text-align:left; padding:14px; border-radius:14px; background:var(--card2); margin-bottom:8px; font-weight:600; }
+  .sheet input[type=password] { width:100%; padding:12px; border-radius:12px; border:0; background:var(--card2); color:var(--ink); font:inherit; margin-bottom:8px; }
+  .sheet p { color:var(--dim); font-size:13px; margin:0 2px 10px; }
+  .sync { font-size:12px; color:var(--dim); text-align:center; margin-top:18px; }
   .toast { position:fixed; left:50%; bottom:30px; transform:translateX(-50%); background:#fff; color:#000; padding:10px 16px; border-radius:20px; font-weight:600; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; }
   .toast.on { opacity:1; }
 </style>
@@ -73,10 +76,14 @@
   </header>
   <section class="summary" id="summary"></section>
   <section class="grid2" id="cards"></section>
+  <div class="sync" id="sync"></div>
 </div>
 
 <div class="sheet" id="sheet"><div>
   <h3>Settings</h3>
+  <p>Cloud sync: paste a GitHub token with Gist access. Your data is saved to a secret gist on your account.</p>
+  <input type="password" id="token" placeholder="GitHub token (ghp_… or github_pat_…)" autocomplete="off">
+  <button class="row" id="saveToken">☁️ Save token &amp; sync</button>
   <button class="row" id="exportBtn">⬇️ Export backup</button>
   <button class="row" id="importBtn">⬆️ Import backup</button>
   <button class="row" id="closeBtn">Close</button>
@@ -118,7 +125,53 @@
   }
   var data = load();
   HABITS.forEach(function (h) { data.log[h.id] = data.log[h.id] || {}; });
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { toast("Couldn't save"); } }
+  function store() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { toast("Couldn't save"); } }
+  function save() { data.updated = Date.now(); store(); push(); }
+
+  var TK = "tracking.token", GK = "tracking.gist", FILE = "tracking-data.json", timer;
+  function token() { return localStorage.getItem(TK) || ""; }
+  function status(t) { $("#sync").textContent = t; }
+  function gh(path, opt) {
+    opt = opt || {};
+    opt.headers = { Authorization: "Bearer " + token(), Accept: "application/vnd.github+json", "Content-Type": "application/json" };
+    return fetch("https://api.github.com" + path, opt).then(function (r) { if (!r.ok) throw r.status; return r.json(); });
+  }
+  function findGist() {
+    var id = localStorage.getItem(GK);
+    if (id) return Promise.resolve(id);
+    return gh("/gists?per_page=100").then(function (list) {
+      var g = list.find(function (x) { return x.files[FILE]; });
+      if (g) { localStorage.setItem(GK, g.id); return g.id; }
+      return gh("/gists", { method: "POST", body: JSON.stringify({ description: "Tracking app data", public: false, files: { [FILE]: { content: JSON.stringify(data) } } }) })
+        .then(function (n) { localStorage.setItem(GK, n.id); return n.id; });
+    });
+  }
+  function push() {
+    if (!token()) return;
+    clearTimeout(timer); status("Saving…");
+    timer = setTimeout(function () {
+      findGist().then(function (id) {
+        return gh("/gists/" + id, { method: "PATCH", body: JSON.stringify({ files: { [FILE]: { content: JSON.stringify(data) } } }) });
+      }).then(function () { status("☁️ Saved to GitHub"); }).catch(fail);
+    }, 800);
+  }
+  function pull() {
+    if (!token()) { status("Saved on this device only · ⋯ to turn on sync"); return Promise.resolve(); }
+    status("Syncing…");
+    return findGist().then(function (id) { return gh("/gists/" + id); }).then(function (g) {
+      var remote = JSON.parse(g.files[FILE].content || "{}");
+      if (remote.log && (remote.updated || 0) > (data.updated || 0)) {
+        data = remote; HABITS.forEach(function (h) { data.log[h.id] = data.log[h.id] || {}; });
+        store(); render(); status("☁️ Synced from GitHub");
+      } else if ((data.updated || 0) > (remote.updated || 0)) push();
+      else status("☁️ Synced");
+    }).catch(fail);
+  }
+  function fail(e) {
+    if (e === 401 || e === 403) { status("⚠️ Token rejected · ⋯ to fix"); }
+    else if (e === 404) { localStorage.removeItem(GK); status("⚠️ Gist not found, will recreate"); }
+    else status("⚠️ Offline · saved on this device");
+  }
   function toast(t) { var el = $("#toast"); el.textContent = t; el.classList.add("on"); setTimeout(function () { el.classList.remove("on"); }, 1600); }
   function toggle(h, k) { if (data.log[h][k]) delete data.log[h][k]; else data.log[h][k] = 1; save(); render(); }
 
@@ -166,7 +219,15 @@
     if (b) { if (navigator.vibrate) navigator.vibrate(10); toggle(b.dataset.h, b.dataset.k); }
   });
 
-  $("#menuBtn").onclick = function () { $("#sheet").classList.add("on"); };
+  $("#menuBtn").onclick = function () { $("#token").value = token(); $("#sheet").classList.add("on"); };
+  $("#saveToken").onclick = function () {
+    var t = $("#token").value.trim();
+    if (t) localStorage.setItem(TK, t); else localStorage.removeItem(TK);
+    localStorage.removeItem(GK);
+    $("#sheet").classList.remove("on");
+    pull().then(function () { if (t) toast("Sync on"); });
+  };
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) pull(); });
   $("#closeBtn").onclick = function () { $("#sheet").classList.remove("on"); };
   $("#sheet").onclick = function (e) { if (e.target.id === "sheet") this.classList.remove("on"); };
   $("#exportBtn").onclick = function () {
@@ -180,11 +241,12 @@
     f.text().then(function (t) {
       var d = JSON.parse(t); if (!d.log) throw 0;
       data = d; HABITS.forEach(function (h) { data.log[h.id] = data.log[h.id] || {}; });
-      save(); render(); toast("Imported"); $("#sheet").classList.remove("on");
+      data.updated = 0; save(); render(); toast("Imported"); $("#sheet").classList.remove("on");
     }).catch(function () { toast("Invalid file"); });
   };
 
   render();
+  pull();
 })();
 </script>
 </body>
