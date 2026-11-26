@@ -24,15 +24,17 @@
   header h1 { font-size:32px; font-weight:800; letter-spacing:-.03em; }
   .menu { width:38px; height:38px; border-radius:50%; background:var(--card); color:var(--dim); font-size:20px; }
 
-  .summary { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; }
+  .summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:18px; }
   .ring { background:var(--card); border-radius:18px; padding:12px 4px 10px; text-align:center; }
   .ring svg { width:52px; height:52px; display:block; margin:0 auto 6px; transform:rotate(-90deg); }
   .ring .e { position:relative; }
   .ring .e span { position:absolute; inset:0; display:grid; place-items:center; font-size:20px; }
   .ring small { font-size:11px; color:var(--dim); font-weight:600; }
 
-  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  @media (max-width:380px) { .grid2 { grid-template-columns:1fr; } }
+  .grid2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .card, .heat, .week { min-width:0; }
+  html, body { overflow-x:hidden; }
+  @media (max-width:600px) { .grid2 { grid-template-columns:minmax(0,1fr); } }
   .card { background:var(--card); border-radius:24px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
   .head { display:flex; gap:10px; align-items:center; margin-bottom:12px; }
   .icon { width:38px; height:38px; border-radius:12px; background:var(--card2); display:grid; place-items:center; font-size:20px; flex:none; }
@@ -52,7 +54,7 @@
   .card:not(.done) .btn { background:color-mix(in srgb, var(--c) 22%, transparent); color:var(--c); }
 
   .week { display:flex; justify-content:space-between; gap:4px; margin-bottom:12px; }
-  .week button { flex:1; border-radius:8px; padding:4px 0; font-size:10px; font-weight:700; color:var(--dim); display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .week button { flex:1; min-width:0; border-radius:8px; padding:4px 0; font-size:10px; font-weight:700; color:var(--dim); display:flex; flex-direction:column; align-items:center; gap:3px; }
   .week b { width:22px; height:22px; border-radius:7px; background:var(--off); display:block; }
   .week button.on b { background:var(--c); }
 
