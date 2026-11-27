@@ -186,7 +186,7 @@
     return data;
   }
   function fix(d) {
-    if (!d.habits) d.habits = DEFAULTS.filter(function (h) { return d.log[h.id] && Object.keys(d.log[h.id]).length; });
+    if (!d.habits) d.habits = DEFAULTS.slice();
     if (!d.todos) d.todos = [];
     if (!d.buy) d.buy = [];
     d.habits.forEach(function (h) { d.log[h.id] = d.log[h.id] || {}; });
